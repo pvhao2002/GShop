@@ -1,0 +1,3 @@
+@echo off
+echo Starting E-commerce Backend API...
+mvn spring-boot:run -Dspring-boot.run.profiles=dev
