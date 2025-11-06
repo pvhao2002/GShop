@@ -134,16 +134,22 @@ export const validateProductData = (product: {
     errors.push('Product name is required');
   } else if (product.name.trim().length < 2) {
     errors.push('Product name must be at least 2 characters long');
+  } else if (product.name.trim().length > 100) {
+    errors.push('Product name must be less than 100 characters');
   }
   
   if (!product.description.trim()) {
     errors.push('Product description is required');
   } else if (product.description.trim().length < 10) {
     errors.push('Product description must be at least 10 characters long');
+  } else if (product.description.trim().length > 1000) {
+    errors.push('Product description must be less than 1000 characters');
   }
   
   if (!product.price || product.price <= 0) {
     errors.push('Product price must be greater than 0');
+  } else if (product.price > 10000) {
+    errors.push('Product price must be less than $10,000');
   }
   
   if (!product.categoryId.trim()) {
@@ -151,6 +157,12 @@ export const validateProductData = (product: {
   }
   
   return errors;
+};
+
+// Validate product inventory
+export const validateInventoryQuantity = (quantity: string): boolean => {
+  const qty = parseInt(quantity);
+  return !isNaN(qty) && qty >= 0 && qty <= 9999;
 };
 
 // Quantity validation for cart

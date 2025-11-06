@@ -1,22 +1,51 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminUserSearch } from '@/components/admin/AdminUserSearch';
+import { AdminUserFilters } from '@/components/admin/AdminUserFilters';
+import { AdminUserList } from '@/components/admin/AdminUserList';
+import { useAdminStore } from '@/store';
 
 export default function AdminUsers() {
+    const { allUsers } = useAdminStore();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'locked' | 'customers' | 'admins'>('all');
+
+    // Calculate user counts for filters
+    const userCounts = useMemo(() => {
+        const total = allUsers.length;
+        const active = allUsers.filter(user => user.isActive).length;
+        const locked = allUsers.filter(user => !user.isActive).length;
+        const customers = allUsers.filter(user => user.role === 'customer').length;
+        const admins = allUsers.filter(user => user.role === 'admin').length;
+
+        return {
+            total,
+            active,
+            locked,
+            customers,
+            admins
+        };
+    }, [allUsers]);
+
     return (
-        <AdminLayout title="Users">
+        <AdminLayout title="User Management">
             <View style={styles.container}>
-                <View style={styles.card}>
-                    <Text style={styles.title}>User Management</Text>
-                    <Text style={styles.description}>
-                        This screen will contain user management functionality including:
-                    </Text>
-                    <Text style={styles.listItem}>• View all registered customers</Text>
-                    <Text style={styles.listItem}>• Search and filter users</Text>
-                    <Text style={styles.listItem}>• Lock/unlock user accounts</Text>
-                    <Text style={styles.listItem}>• View user activity</Text>
-                    <Text style={styles.listItem}>• Manage user roles</Text>
-                </View>
+                <AdminUserSearch
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                />
+                
+                <AdminUserFilters
+                    activeFilter={activeFilter}
+                    onFilterChange={setActiveFilter}
+                    userCounts={userCounts}
+                />
+                
+                <AdminUserList
+                    searchQuery={searchQuery}
+                    activeFilter={activeFilter}
+                />
             </View>
         </AdminLayout>
     );
@@ -26,36 +55,5 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
-    },
-    card: {
-        backgroundColor: '#FFFFFF',
-        borderRadius: 12,
-        padding: 20,
-        shadowColor: '#000000',
-        shadowOpacity: 0.05,
-        shadowOffset: { width: 0, height: 2 },
-        shadowRadius: 4,
-        elevation: 2,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#000000',
-        fontFamily: 'Poppins',
-        marginBottom: 12,
-    },
-    description: {
-        fontSize: 16,
-        color: '#666666',
-        fontFamily: 'Inter',
-        marginBottom: 16,
-        lineHeight: 22,
-    },
-    listItem: {
-        fontSize: 14,
-        color: '#666666',
-        fontFamily: 'Inter',
-        marginBottom: 8,
-        lineHeight: 20,
     },
 });

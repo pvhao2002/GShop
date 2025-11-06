@@ -5,8 +5,8 @@ import com.ecommerce.repository.ProductRepository;
 import com.ecommerce.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuator.info.Info;
-import org.springframework.boot.actuator.info.InfoContributor;
+import org.springframework.boot.actuate.info.Info;
+import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

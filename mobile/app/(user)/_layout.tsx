@@ -7,9 +7,13 @@ export default function UserLayout() {
         <SafeAreaView style={styles.container}>
             <Stack screenOptions={{ 
                 headerShown: false,
-                contentStyle: { backgroundColor: '#FFFFFF' }
+                contentStyle: { backgroundColor: '#FFFFFF' },
+                animation: 'slide_from_right',
+                animationDuration: 300,
             }}>
                 <Stack.Screen name="index" />
+                <Stack.Screen name="search" />
+                <Stack.Screen name="product/[id]" />
                 <Stack.Screen name="cart" />
                 <Stack.Screen name="checkout" />
                 <Stack.Screen name="profile" />

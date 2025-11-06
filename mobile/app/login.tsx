@@ -14,6 +14,8 @@ import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/authStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FormInput } from '@/components/ui/FormInput';
+import { AnimatedButton } from '@/components/ui/AnimatedButton';
+import { AnimatedScreen } from '@/components/shared/AnimatedScreen';
 import { validateLoginCredentials } from '@/utils/validation';
 
 export default function LoginScreen() {
@@ -54,15 +56,16 @@ export default function LoginScreen() {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <KeyboardAvoidingView
-                style={styles.keyboardView}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
-                <ScrollView
-                    contentContainerStyle={styles.scroll}
-                    keyboardShouldPersistTaps="handled"
+            <AnimatedScreen>
+                <KeyboardAvoidingView
+                    style={styles.keyboardView}
+                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 >
-                    <View style={styles.container}>
+                    <ScrollView
+                        contentContainerStyle={styles.scroll}
+                        keyboardShouldPersistTaps="handled"
+                    >
+                        <View style={styles.container}>
                         {/* Logo + Title */}
                         <View style={styles.header}>
                             <Image
@@ -107,17 +110,15 @@ export default function LoginScreen() {
                                 <Text style={styles.forgotText}>Forgot Password?</Text>
                             </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={[styles.button, isLoading && styles.buttonDisabled]}
+                            <AnimatedButton
+                                title="Sign In"
                                 onPress={handleLogin}
                                 disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <ActivityIndicator color="#fff" size="small" />
-                                ) : (
-                                    <Text style={styles.buttonText}>Sign In</Text>
-                                )}
-                            </TouchableOpacity>
+                                loading={isLoading}
+                                variant="primary"
+                                size="large"
+                                style={styles.button}
+                            />
 
                             <View style={styles.registerContainer}>
                                 <Text style={styles.registerText}>Don't have an account? </Text>
@@ -132,9 +133,10 @@ export default function LoginScreen() {
                                 </TouchableOpacity>
                             </View>
                         </View>
-                    </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
+                        </View>
+                    </ScrollView>
+                </KeyboardAvoidingView>
+            </AnimatedScreen>
         </SafeAreaView>
     );
 }

@@ -6,7 +6,9 @@ export default function AdminLayoutRoot() {
         <AdminGuard>
             <Stack screenOptions={{ 
                 headerShown: false,
-                contentStyle: { backgroundColor: '#F8F9FA' }
+                contentStyle: { backgroundColor: '#F8F9FA' },
+                animation: 'slide_from_right',
+                animationDuration: 300,
             }}>
                 <Stack.Screen name="index" />
                 <Stack.Screen name="products" />

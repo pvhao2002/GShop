@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Product } from '../../types';
+import { AnimatedCard } from './AnimatedCard';
 
 interface ProductCardProps {
   product: Product;
@@ -46,10 +47,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const isOutOfStock = product.inventory.every(item => item.quantity === 0);
 
   return (
-    <TouchableOpacity
+    <AnimatedCard
       style={[styles.container, { width: finalCardWidth }]}
       onPress={() => onPress(product)}
-      activeOpacity={0.8}
+      elevation={3}
     >
       <View style={styles.imageContainer}>
         <Image
@@ -105,7 +106,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </AnimatedCard>
   );
 };
 

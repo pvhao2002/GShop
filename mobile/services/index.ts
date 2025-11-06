@@ -6,3 +6,4 @@ export { default as cartService } from './cartService';
 export { default as orderService } from './orderService';
 export { default as adminService } from './adminService';
 export { default as profileService } from './profileService';
+export { default as categoryService } from './categoryService';

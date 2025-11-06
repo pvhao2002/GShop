@@ -6,3 +6,7 @@ export { ProductGrid } from './ProductGrid';
 export { CartItem } from './CartItem';
 export { Collapsible } from './collapsible';
 export { IconSymbol } from './icon-symbol';
+export { AnimatedButton } from './AnimatedButton';
+export { AnimatedAddToCart } from './AnimatedAddToCart';
+export { AnimatedCard } from './AnimatedCard';
+export { OptimizedImage, MemoizedOptimizedImage, ProgressiveImage } from './OptimizedImage';

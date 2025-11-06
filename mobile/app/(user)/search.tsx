@@ -115,7 +115,7 @@ export default function SearchScreen() {
   }, [setSearchQuery]);
 
   const handleProductPress = useCallback((product: Product) => {
-    router.push(`/product/${product.id}`);
+    router.push(`/(user)/product/${product.id}`);
   }, []);
 
   const handleAddToCart = useCallback((product: Product) => {

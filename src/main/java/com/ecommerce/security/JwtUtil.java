@@ -62,7 +62,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -108,11 +108,11 @@ public class JwtUtil {
      */
     private Claims getAllClaimsFromToken(String token) {
         try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
+            return Jwts.parser() // ✅ parser() thay vì parserBuilder()
+                    .verifyWith(getSigningKey()) // ✅ verifyWith() thay cho setSigningKey()
                     .build()
-                    .parseClaimsJws(token)
-                    .getBody();
+                    .parseSignedClaims(token)
+                    .getPayload(); // ✅ getPayload() thay cho getBody()
         } catch (Exception e) {
             log.error("Error parsing JWT token: {}", e.getMessage());
             throw new RuntimeException("Invalid JWT token", e);

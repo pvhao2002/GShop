@@ -1,6 +1,7 @@
 package com.ecommerce.service;
 
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,13 +9,15 @@ import org.springframework.stereotype.Service;
 
 /**
  * Service for tracking application metrics and business events.
- * Provides methods to increment counters and record timers for monitoring.
  */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MetricsService {
 
+    private final MeterRegistry meterRegistry;
+
+    // Predefined base metrics
     private final Counter userRegistrationCounter;
     private final Counter authenticationFailureCounter;
     private final Counter orderCreationCounter;
@@ -33,15 +36,18 @@ public class MetricsService {
     }
 
     /**
-     * Record an authentication failure
+     * Record an authentication failure with reason
      */
     public void recordAuthenticationFailure(String reason) {
-        authenticationFailureCounter.increment("reason", reason);
-        log.debug("Authentication failure metric recorded: {}", reason);
+        Counter counter = Counter.builder("auth.failures")
+                .tag("reason", reason)
+                .register(meterRegistry);
+        counter.increment();
+        log.debug("Authentication failure recorded with reason: {}", reason);
     }
 
     /**
-     * Record a successful order creation
+     * Record an order creation
      */
     public void recordOrderCreation() {
         orderCreationCounter.increment();
@@ -49,89 +55,57 @@ public class MetricsService {
     }
 
     /**
-     * Start timing order processing
-     */
-    public Timer.Sample startOrderProcessingTimer() {
-        return Timer.start();
-    }
-
-    /**
-     * Stop timing order processing
-     */
-    public void stopOrderProcessingTimer(Timer.Sample sample) {
-        sample.stop(orderProcessingTimer);
-        log.debug("Order processing time recorded");
-    }
-
-    /**
-     * Record a product search
+     * Record product search with tag
      */
     public void recordProductSearch(String searchType) {
-        productSearchCounter.increment("type", searchType);
-        log.debug("Product search metric recorded: {}", searchType);
+        Counter counter = Counter.builder("product.searches")
+                .tag("type", searchType)
+                .register(meterRegistry);
+        counter.increment();
+        log.debug("Product search recorded for type: {}", searchType);
     }
 
     /**
-     * Start timing database query
-     */
-    public Timer.Sample startDatabaseQueryTimer() {
-        return Timer.start();
-    }
-
-    /**
-     * Stop timing database query
-     */
-    public void stopDatabaseQueryTimer(Timer.Sample sample, String queryType) {
-        sample.stop(databaseQueryTimer.tag("type", queryType));
-        log.debug("Database query time recorded: {}", queryType);
-    }
-
-    /**
-     * Record an API error
+     * Record an API error with dynamic tags
      */
     public void recordApiError(String errorType, int statusCode) {
-        apiErrorCounter.increment("type", errorType, "status", String.valueOf(statusCode));
-        log.debug("API error metric recorded: {} ({})", errorType, statusCode);
+        Counter counter = Counter.builder("api.errors")
+                .tag("type", errorType)
+                .tag("status", String.valueOf(statusCode))
+                .register(meterRegistry);
+        counter.increment();
+        log.debug("API error recorded: {} ({})", errorType, statusCode);
     }
 
     /**
      * Record a security event
      */
     public void recordSecurityEvent(String eventType) {
-        securityEventCounter.increment("type", eventType);
-        log.debug("Security event metric recorded: {}", eventType);
+        Counter counter = Counter.builder("security.events")
+                .tag("type", eventType)
+                .register(meterRegistry);
+        counter.increment();
+        log.debug("Security event recorded: {}", eventType);
     }
 
     /**
-     * Record a timed operation
+     * Time an arbitrary operation
      */
-    public <T> T recordTimed(String operation, Timer timer, java.util.function.Supplier<T> supplier) {
-        Timer.Sample sample = Timer.start();
-        try {
-            T result = supplier.get();
-            sample.stop(timer);
-            log.debug("Timed operation completed: {}", operation);
-            return result;
-        } catch (Exception e) {
-            sample.stop(timer.tag("status", "error"));
-            log.debug("Timed operation failed: {}", operation);
-            throw e;
-        }
+    public <T> T recordTimed(String operation, String tagKey, String tagValue, java.util.function.Supplier<T> supplier) {
+        Timer timer = Timer.builder("operation.timer")
+                .tag("operation", operation)
+                .tag(tagKey, tagValue)
+                .register(meterRegistry);
+
+        return timer.record(supplier::get);
     }
 
-    /**
-     * Record a timed operation without return value
-     */
-    public void recordTimed(String operation, Timer timer, Runnable runnable) {
-        Timer.Sample sample = Timer.start();
-        try {
-            runnable.run();
-            sample.stop(timer);
-            log.debug("Timed operation completed: {}", operation);
-        } catch (Exception e) {
-            sample.stop(timer.tag("status", "error"));
-            log.debug("Timed operation failed: {}", operation);
-            throw e;
-        }
+    public void recordTimed(String operation, String tagKey, String tagValue, Runnable runnable) {
+        Timer timer = Timer.builder("operation.timer")
+                .tag("operation", operation)
+                .tag(tagKey, tagValue)
+                .register(meterRegistry);
+
+        timer.record(runnable);
     }
 }

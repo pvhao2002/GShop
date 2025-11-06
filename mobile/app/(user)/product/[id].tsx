@@ -114,7 +114,7 @@ export default function ProductDetail() {
       `${product.name} (${selectedSize.name}, ${selectedColor.name}) has been added to your cart.`,
       [
         { text: 'Continue Shopping', style: 'cancel' },
-        { text: 'View Cart', onPress: () => router.push('/cart') },
+        { text: 'View Cart', onPress: () => router.push('/(user)/cart') },
       ]
     );
   }, [product, selectedSize, selectedColor, addToCart]);
@@ -133,7 +133,7 @@ export default function ProductDetail() {
   }, [product]);
 
   const handleRelatedProductPress = useCallback((relatedProduct: Product) => {
-    router.push(`/product/${relatedProduct.id}`);
+    router.push(`/(user)/product/${relatedProduct.id}`);
   }, []);
 
   const getAvailableQuantity = useCallback(() => {

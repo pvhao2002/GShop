@@ -27,7 +27,7 @@ public class DtoMapper {
         if (user == null) {
             return null;
         }
-        
+
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -46,7 +46,7 @@ public class DtoMapper {
         if (user == null) {
             return null;
         }
-        
+
         return UserResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -66,7 +66,7 @@ public class DtoMapper {
         if (product == null) {
             return null;
         }
-        
+
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
@@ -86,12 +86,12 @@ public class DtoMapper {
         if (category == null) {
             return null;
         }
-        
+
         return CategoryResponse.builder()
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
-                .parentId(category.getParent() != null ? category.getParent().getId() : null)
+                .parent(category.getParent() != null ? CategoryResponse.builder().id(category.getParent().getId()).build() : null)
                 .build();
     }
 
@@ -102,7 +102,7 @@ public class DtoMapper {
         if (variant == null) {
             return null;
         }
-        
+
         return ProductVariantResponse.builder()
                 .id(variant.getId())
                 .size(variant.getSize())
@@ -120,7 +120,7 @@ public class DtoMapper {
         if (order == null) {
             return null;
         }
-        
+
         return OrderResponse.builder()
                 .id(order.getId())
                 .userId(order.getUser().getId())
@@ -142,13 +142,16 @@ public class DtoMapper {
         if (orderItem == null) {
             return null;
         }
-        
+
         return OrderItemResponse.builder()
                 .id(orderItem.getId())
                 .productId(orderItem.getProduct().getId())
                 .productName(orderItem.getProduct().getName())
                 .variantId(orderItem.getVariant() != null ? orderItem.getVariant().getId() : null)
-                .variantDetails(toProductVariantResponse(orderItem.getVariant()))
+                .variantSize(orderItem.getVariant().getSize())
+                .variantColor(orderItem.getVariant().getColor())
+                .variantColorHex(orderItem.getVariant().getColorHex())
+                .quantity(orderItem.getQuantity())
                 .quantity(orderItem.getQuantity())
                 .unitPrice(orderItem.getUnitPrice())
                 .totalPrice(orderItem.getTotalPrice())
@@ -162,7 +165,7 @@ public class DtoMapper {
         if (entities == null) {
             return null;
         }
-        
+
         return entities.stream()
                 .map(mapper)
                 .collect(Collectors.toList());

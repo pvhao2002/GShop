@@ -10,7 +10,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaWrapper } from '../../components/shared/SafeAreaWrapper';
+import { SafeAreaWrapper, AnimatedScreen, PullToRefresh, SkeletonScreen } from '../../components/shared';
 import { ProductGrid } from '../../components/ui/ProductGrid';
 import { LoadingSpinner } from '../../components/shared/LoadingSpinner';
 import { useProductStore } from '../../store/productStore';
@@ -81,7 +81,7 @@ export default function UserHome() {
   }, [setSelectedCategory]);
 
   const handleProductPress = useCallback((product: Product) => {
-    router.push(`/product/${product.id}`);
+    router.push(`/(user)/product/${product.id}`);
   }, []);
 
   const handleAddToCart = useCallback((product: Product) => {
@@ -114,28 +114,21 @@ export default function UserHome() {
   if (isLoading && products.length === 0) {
     return (
       <SafeAreaWrapper>
-        <View style={styles.loadingContainer}>
-          <LoadingSpinner size="large" />
-          <Text style={styles.loadingText}>Loading products...</Text>
-        </View>
+        <AnimatedScreen>
+          <SkeletonScreen type="product-grid" />
+        </AnimatedScreen>
       </SafeAreaWrapper>
     );
   }
 
   return (
     <SafeAreaWrapper>
-      <ScrollView
-        style={styles.container}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            colors={['#000000']}
-            tintColor="#000000"
-          />
-        }
-      >
+      <AnimatedScreen>
+        <PullToRefresh
+          onRefresh={handleRefresh}
+          refreshing={isRefreshing}
+        >
+          <View style={styles.container}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -169,7 +162,7 @@ export default function UserHome() {
         <View style={styles.searchContainer}>
           <TouchableOpacity
             style={styles.searchButton}
-            onPress={() => router.push('/search')}
+            onPress={() => router.push('/(user)/search')}
           >
             <Ionicons name="search" size={20} color="#666666" />
             <Text style={styles.searchButtonText}>Search for clothing...</Text>
@@ -307,7 +300,8 @@ export default function UserHome() {
             />
           )}
         </View>
-      </ScrollView>
+        </PullToRefresh>
+      </AnimatedScreen>
     </SafeAreaWrapper>
   );
 }

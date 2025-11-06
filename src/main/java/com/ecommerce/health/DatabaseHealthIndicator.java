@@ -2,8 +2,8 @@ package com.ecommerce.health;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuator.health.Health;
-import org.springframework.boot.actuator.health.HealthIndicator;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
@@ -99,7 +99,7 @@ public class DatabaseHealthIndicator implements HealthIndicator {
             if (dataSource instanceof com.zaxxer.hikari.HikariDataSource) {
                 com.zaxxer.hikari.HikariDataSource hikariDataSource = 
                     (com.zaxxer.hikari.HikariDataSource) dataSource;
-                return hikariDataSource.getHikariPoolMXBean().getMaximumPoolSize();
+                return hikariDataSource.getHikariConfigMXBean().getMaximumPoolSize();
             }
         } catch (Exception e) {
             log.debug("Could not get max connections: {}", e.getMessage());

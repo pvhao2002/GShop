@@ -30,38 +30,6 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
-
-    /**
-     * Handle validation errors from @Valid annotations
-     */
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(
-            MethodArgumentNotValidException ex, WebRequest request) {
-        
-        log.warn("Validation error on request to {}: {}", 
-                request.getDescription(false), ex.getMessage());
-        
-        List<ErrorResponse.ValidationError> validationErrors = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(error -> ErrorResponse.ValidationError.builder()
-                        .field(error.getField())
-                        .message(error.getDefaultMessage())
-                        .rejectedValue(error.getRejectedValue())
-                        .build())
-                .collect(Collectors.toList());
-        
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .error("VALIDATION_ERROR")
-                .message("Validation failed for one or more fields")
-                .timestamp(LocalDateTime.now())
-                .path(extractPath(request))
-                .validationErrors(validationErrors)
-                .build();
-        
-        return ResponseEntity.badRequest().body(errorResponse);
-    }
-
     /**
      * Handle constraint violation errors
      */

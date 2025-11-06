@@ -13,6 +13,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCartStore } from '../../store/cartStore';
 import { CartItem } from '../../components/ui/CartItem';
 import { LoadingSpinner } from '../../components/shared/LoadingSpinner';
+import { AnimatedScreen, AnimatedLoadingState } from '../../components/shared';
+import { AnimatedButton } from '../../components/ui';
 
 export default function CartScreen() {
   const {
@@ -63,7 +65,9 @@ export default function CartScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <LoadingSpinner />
+        <AnimatedScreen>
+          <AnimatedLoadingState message="Loading your cart..." type="pulse" />
+        </AnimatedScreen>
       </SafeAreaView>
     );
   }
@@ -71,6 +75,7 @@ export default function CartScreen() {
   if (cartItems.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
+        <AnimatedScreen>
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.backButton}
@@ -88,13 +93,15 @@ export default function CartScreen() {
           <Text style={styles.emptySubtitle}>
             Discover our latest fashion collection and add items to your cart
           </Text>
-          <TouchableOpacity
-            style={styles.continueShoppingButton}
+          <AnimatedButton
+            title="Continue Shopping"
             onPress={handleContinueShopping}
-          >
-            <Text style={styles.continueShoppingText}>Continue Shopping</Text>
-          </TouchableOpacity>
+            variant="primary"
+            size="large"
+            style={styles.continueShoppingButton}
+          />
         </View>
+        </AnimatedScreen>
       </SafeAreaView>
     );
   }
@@ -107,6 +114,7 @@ export default function CartScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <AnimatedScreen>
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -194,15 +202,15 @@ export default function CartScreen() {
           <Text style={styles.continueShoppingTextSmall}>Continue Shopping</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity
-          style={styles.checkoutButton}
+        <AnimatedButton
+          title={`Proceed to Checkout • ${formatPrice(finalTotal)}`}
           onPress={handleCheckout}
-        >
-          <Text style={styles.checkoutButtonText}>
-            Proceed to Checkout • {formatPrice(finalTotal)}
-          </Text>
-        </TouchableOpacity>
+          variant="primary"
+          size="large"
+          style={styles.checkoutButton}
+        />
       </View>
+      </AnimatedScreen>
     </SafeAreaView>
   );
 }

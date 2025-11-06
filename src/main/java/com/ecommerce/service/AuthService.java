@@ -4,6 +4,8 @@ import com.ecommerce.dto.auth.*;
 import com.ecommerce.entity.Address;
 import com.ecommerce.entity.Role;
 import com.ecommerce.entity.User;
+import com.ecommerce.exception.AccessDeniedException;
+import com.ecommerce.exception.UnauthorizedException;
 import com.ecommerce.repository.UserRepository;
 import com.ecommerce.security.JwtUtil;
 import com.ecommerce.security.UserPrincipal;
@@ -116,10 +118,9 @@ public class AuthService {
             );
 
             UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-            User user = userPrincipal.getUser();
 
             // Check if user is active
-            if (!user.getIsActive()) {
+            if (!userPrincipal.getIsActive()) {
                 LoggingUtils.logAuthenticationFailure(request.getEmail(), clientIp, "Account deactivated");
                 throw new RuntimeException("Account is deactivated");
             }
@@ -129,25 +130,25 @@ public class AuthService {
             String refreshToken = jwtUtil.generateRefreshToken(userPrincipal);
 
             // Log successful authentication
-            LoggingUtils.logAuthenticationSuccess(user.getEmail(), clientIp);
-            LoggingUtils.setUserContext(user.getId().toString(), user.getEmail());
-            log.info("User authenticated successfully: {}", user.getEmail());
+            LoggingUtils.logAuthenticationSuccess(userPrincipal.getEmail(), clientIp);
+            LoggingUtils.setUserContext(userPrincipal.getId().toString(), userPrincipal.getEmail());
+            log.info("User authenticated successfully: {}", userPrincipal.getEmail());
 
             return AuthResponse.builder()
                     .token(token)
                     .refreshToken(refreshToken)
                     .type("Bearer")
-                    .id(user.getId())
-                    .email(user.getEmail())
-                    .firstName(user.getFirstName())
-                    .lastName(user.getLastName())
-                    .role(user.getRole().name())
+                    .id(userPrincipal.getId())
+                    .email(userPrincipal.getEmail())
+                    .firstName(userPrincipal.getFirstName())
+                    .lastName(userPrincipal.getLastName())
+                    .role(userPrincipal.getRole().name())
                     .build();
 
         } catch (BadCredentialsException e) {
             LoggingUtils.logAuthenticationFailure(request.getEmail(), clientIp, "Invalid credentials");
             log.warn("Authentication failed for email: {}", request.getEmail());
-            throw new RuntimeException("Invalid email or password");
+            throw new UnauthorizedException("Invalid email or password");
         }
     }
 
