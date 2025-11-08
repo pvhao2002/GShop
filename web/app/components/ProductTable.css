@@ -1,0 +1,147 @@
+.product-table-container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.toolbar h2 {
+    font-size: 1.4rem;
+    color: #1e3a8a;
+}
+
+.toolbar button {
+    background: linear-gradient(90deg, #2563eb, #38bdf8);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.product-table th,
+.product-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e2e8f0;
+    text-align: left;
+}
+
+.thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+}
+
+.no-img {
+    color: #9ca3af;
+    font-size: 12px;
+}
+
+.status-active {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.status-inactive {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.view-btn {
+    background: #11f3d1;
+    color: #040000;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin-right: 6px;
+    cursor: pointer;
+}
+
+
+.edit-btn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    margin-right: 6px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.error-text {
+    color: #dc2626;
+    font-size: 0.85rem;
+    margin-top: 4px;
+    display: block;
+}
+
+.thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 6px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.thumb:hover {
+    transform: scale(1.1);
+}
+
+/* Pagination styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+    gap: 10px;
+}
+
+.page-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.page-btn:hover {
+    background: #1d4ed8;
+}
+
+.page-btn:disabled {
+    background: #cbd5e1;
+    color: #475569;
+    cursor: not-allowed;
+}
+
+.page-info {
+    font-size: 14px;
+    color: #334155;
+}

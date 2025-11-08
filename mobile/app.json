@@ -8,9 +8,9 @@
     "scheme": "mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "jsEngine": "hermes",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ecommerce"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,10 +19,9 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "package": "com.ecommerce",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "enableProguardInReleaseBuilds": true,
-      "enableSeparateBuildPerCPUArchitecture": true
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
@@ -41,25 +40,11 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
-        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id"
-      }
     }
   }
 }

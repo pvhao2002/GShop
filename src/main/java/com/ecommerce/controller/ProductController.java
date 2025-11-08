@@ -25,7 +25,27 @@ import java.util.List;
 public class ProductController {
     
     private final ProductService productService;
-    
+
+    @GetMapping("newest")
+    public ResponseEntity<List<ProductResponse>> getNewestProducts() {
+        List<ProductResponse> newest = productService.top20NewProducts();
+        return ResponseEntity.ok(newest);
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<List<ProductResponse>> getTrendingProducts() {
+        List<ProductResponse> trending = productService.topTrendingProducts();
+        return ResponseEntity.ok(trending);
+    }
+
+    // ⚡ Flash sale (discounted or random)
+    @GetMapping("/flash-sale")
+    public ResponseEntity<List<ProductResponse>> getFlashSaleProducts() {
+        List<ProductResponse> sale = productService.getFlashSaleProducts();
+        return ResponseEntity.ok(sale);
+    }
+
+
     /**
      * Get all products with optional filtering and pagination.
      * Supports filtering by category, search term, and price range.
@@ -46,10 +66,6 @@ public class ProductController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) BigDecimal minPrice,
             @RequestParam(required = false) BigDecimal maxPrice) {
-        
-        log.debug("GET /api/products - page: {}, size: {}, category: {}, search: {}, minPrice: {}, maxPrice: {}",
-                page, size, category, search, minPrice, maxPrice);
-        
         // Validate pagination parameters
         if (page < 0) {
             page = 0;
@@ -57,11 +73,9 @@ public class ProductController {
         if (size <= 0 || size > 100) {
             size = 20;
         }
-        
+
         PagedResponse<ProductResponse> products = productService.getAllProducts(
                 page, size, category, search, minPrice, maxPrice);
-        
-        log.debug("Retrieved {} products for page {}", products.getContent().size(), page);
         return ResponseEntity.ok(products);
     }
     
@@ -121,30 +135,10 @@ public class ProductController {
      */
     @GetMapping("/categories")
     public ResponseEntity<List<CategoryResponse>> getAllCategories() {
-        log.debug("GET /api/products/categories");
-        
         List<CategoryResponse> categories = productService.getAllCategories();
-        
-        log.debug("Retrieved {} categories", categories.size());
         return ResponseEntity.ok(categories);
     }
-    
-    /**
-     * Get root categories (categories without parent).
-     * Useful for main navigation menu.
-     * 
-     * @return List of root categories
-     */
-    @GetMapping("/categories/root")
-    public ResponseEntity<List<CategoryResponse>> getRootCategories() {
-        log.debug("GET /api/products/categories/root");
-        
-        List<CategoryResponse> rootCategories = productService.getRootCategories();
-        
-        log.debug("Retrieved {} root categories", rootCategories.size());
-        return ResponseEntity.ok(rootCategories);
-    }
-    
+
     /**
      * Get categories that have active products.
      * Useful for filtering out empty categories in navigation.
@@ -153,11 +147,7 @@ public class ProductController {
      */
     @GetMapping("/categories/with-products")
     public ResponseEntity<List<CategoryResponse>> getCategoriesWithProducts() {
-        log.debug("GET /api/products/categories/with-products");
-        
         List<CategoryResponse> categories = productService.getCategoriesWithProducts();
-        
-        log.debug("Retrieved {} categories with products", categories.size());
         return ResponseEntity.ok(categories);
     }
 }

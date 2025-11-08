@@ -1,0 +1,29 @@
+/* Spinner toàn màn hình */
+.spinner-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55); /* xanh đậm trong suốt */
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+}
+
+/* Hình vòng quay */
+.spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #38bdf8; /* xanh pastel nhạt */
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+}
+
+/* Hiệu ứng quay */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -29,15 +29,7 @@ public class Category {
     private String name;
     
     private String description;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Category parent;
-    
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<Category> children = new ArrayList<>();
-    
+
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
     @Builder.Default
     private List<Product> products = new ArrayList<>();

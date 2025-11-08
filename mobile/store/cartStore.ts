@@ -1,128 +1,88 @@
-import { create } from 'zustand';
-import { CartItem, Product } from '../types';
+import {create} from 'zustand';
+import {persist, createJSONStorage} from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-interface CartState {
-    cartItems: CartItem[];
-    isLoading: boolean;
-    error: string | null;
-    
-    // Actions
-    addToCart: (product: Product, sizeId: string, colorId: string, quantity?: number) => void;
-    removeFromCart: (productId: string, sizeId: string, colorId: string) => void;
-    updateQuantity: (productId: string, sizeId: string, colorId: string, quantity: number) => void;
-    clearCart: () => void;
-    setLoading: (loading: boolean) => void;
-    setError: (error: string | null) => void;
-    
-    // Computed getters
-    getCartTotal: () => number;
-    getCartItemCount: () => number;
-    getCartItem: (productId: string, sizeId: string, colorId: string) => CartItem | undefined;
-    isInCart: (productId: string, sizeId: string, colorId: string) => boolean;
+export interface CartVariant {
+    variantId?: number;
+    color?: string;
+    size?: string;
+    quantity: number;
+    additionalPrice?: number;
 }
 
-export const useCartStore = create<CartState>((set, get) => ({
-    cartItems: [],
-    isLoading: false,
-    error: null,
+export interface CartItem {
+    productId: number;
+    name: string;
+    price: number;
+    image?: string;
+    variant?: CartVariant | null;
+    quantity: number;
+}
 
-    addToCart: (product, sizeId, colorId, quantity = 1) => {
-        set((state) => {
-            const existingItemIndex = state.cartItems.findIndex(
-                item => item.productId === product.id && 
-                        item.sizeId === sizeId && 
-                        item.colorId === colorId
-            );
+interface CartState {
+    items: CartItem[];
+    addItem: (item: CartItem) => void;
+    removeItem: (productId: number, variantId?: number) => void;
+    clearCart: () => void;
+    getTotalQuantity: () => number;
+    getTotalPrice: () => number;
+    updateQuantity: (productId: number, variantId?: number, delta?: number) => void;
+}
 
-            if (existingItemIndex >= 0) {
-                // Update existing item quantity
-                const updatedItems = [...state.cartItems];
-                updatedItems[existingItemIndex] = {
-                    ...updatedItems[existingItemIndex],
-                    quantity: updatedItems[existingItemIndex].quantity + quantity
-                };
-                return { cartItems: updatedItems };
-            } else {
-                // Add new item
-                const newItem: CartItem = {
-                    productId: product.id,
-                    product,
-                    sizeId,
-                    colorId,
-                    quantity,
-                    addedAt: new Date()
-                };
-                return { cartItems: [...state.cartItems, newItem] };
-            }
-        });
-    },
+export const useCartStore = create<CartState>()(
+    persist(
+        (set, get) => ({
+            items: [],
+            updateQuantity: (productId, variantId, delta) => {
+                const newItems = get().items.map((it) => {
+                    if (it.productId === productId && it.variant?.variantId === variantId) {
+                        const newQty = Math.max(1, it.quantity + (delta ?? 0));
+                        return {...it, quantity: newQty};
+                    }
+                    return it;
+                });
+                set({items: newItems});
+            },
 
-    removeFromCart: (productId, sizeId, colorId) => {
-        set((state) => ({
-            cartItems: state.cartItems.filter(
-                item => !(item.productId === productId && 
-                         item.sizeId === sizeId && 
-                         item.colorId === colorId)
-            )
-        }));
-    },
+            addItem: (item) => {
+                const currentItems = get().items;
+                const existing = currentItems.find(
+                    (it) =>
+                        it.productId === item.productId &&
+                        it.variant?.variantId === item.variant?.variantId
+                );
 
-    updateQuantity: (productId, sizeId, colorId, quantity) => {
-        if (quantity <= 0) {
-            get().removeFromCart(productId, sizeId, colorId);
-            return;
+                if (existing) {
+                    const updated = currentItems.map((it) =>
+                        it.productId === item.productId &&
+                        it.variant?.variantId === item.variant?.variantId
+                            ? {...it, quantity: it.quantity + item.quantity}
+                            : it
+                    );
+                    set({items: updated});
+                } else {
+                    set({items: [...currentItems, item]});
+                }
+            },
+
+            removeItem: (productId, variantId) => {
+                set({
+                    items: get().items.filter(
+                        (it) =>
+                            it.productId !== productId ||
+                            it.variant?.variantId !== variantId
+                    ),
+                });
+            },
+
+            clearCart: () => set({items: []}),
+            getTotalQuantity: () => get().items.reduce((sum, it) => sum + it.quantity, 0),
+            getTotalPrice: () =>
+                get().items.reduce((sum, it) => sum + it.price * it.quantity, 0),
+        }),
+        {
+            name: 'cart-storage',
+            storage: createJSONStorage(() => AsyncStorage), // ✅ Adapter chuẩn Zustand v5
         }
-
-        set((state) => ({
-            cartItems: state.cartItems.map(item =>
-                item.productId === productId && 
-                item.sizeId === sizeId && 
-                item.colorId === colorId
-                    ? { ...item, quantity }
-                    : item
-            )
-        }));
-    },
-
-    clearCart: () => {
-        set({ cartItems: [], error: null });
-    },
-
-    setLoading: (isLoading) => {
-        set({ isLoading });
-    },
-
-    setError: (error) => {
-        set({ error });
-    },
-
-    getCartTotal: () => {
-        const { cartItems } = get();
-        return cartItems.reduce((total, item) => {
-            return total + (item.product.price * item.quantity);
-        }, 0);
-    },
-
-    getCartItemCount: () => {
-        const { cartItems } = get();
-        return cartItems.reduce((count, item) => count + item.quantity, 0);
-    },
-
-    getCartItem: (productId, sizeId, colorId) => {
-        const { cartItems } = get();
-        return cartItems.find(
-            item => item.productId === productId && 
-                   item.sizeId === sizeId && 
-                   item.colorId === colorId
-        );
-    },
-
-    isInCart: (productId, sizeId, colorId) => {
-        const { cartItems } = get();
-        return cartItems.some(
-            item => item.productId === productId && 
-                   item.sizeId === sizeId && 
-                   item.colorId === colorId
-        );
-    },
-}));
+    )
+);

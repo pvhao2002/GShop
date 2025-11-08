@@ -1,54 +1,53 @@
 /**
- * Theme configuration for the e-commerce clothing app
- * Following modern fashion-forward design principles
+ * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
+ * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
 import { Platform } from 'react-native';
 
-// Fashion-forward color scheme
+const tintColorLight = '#0a7ea4';
+const tintColorDark = '#fff';
+
 export const Colors = {
   light: {
-    text: '#333333',
-    background: '#FFFFFF',
-    tint: '#000000',
-    icon: '#666666',
-    tabIconDefault: '#666666',
-    tabIconSelected: '#000000',
-    border: '#E8E8E8',
-    accent: '#F5F5F5',
+    text: '#11181C',
+    background: '#fff',
+    tint: tintColorLight,
+    icon: '#687076',
+    tabIconDefault: '#687076',
+    tabIconSelected: tintColorLight,
   },
   dark: {
-    text: '#FFFFFF',
-    background: '#000000',
-    tint: '#FFFFFF',
-    icon: '#CCCCCC',
-    tabIconDefault: '#CCCCCC',
-    tabIconSelected: '#FFFFFF',
-    border: '#333333',
-    accent: '#1A1A1A',
+    text: '#ECEDEE',
+    background: '#151718',
+    tint: tintColorDark,
+    icon: '#9BA1A6',
+    tabIconDefault: '#9BA1A6',
+    tabIconSelected: tintColorDark,
   },
 };
 
-// Typography system with fashion-forward fonts
 export const Fonts = Platform.select({
   ios: {
-    primary: 'Poppins',
-    secondary: 'Inter',
-    system: 'system-ui',
-  },
-  android: {
-    primary: 'Poppins',
-    secondary: 'Inter',
-    system: 'Roboto',
+    /** iOS `UIFontDescriptorSystemDesignDefault` */
+    sans: 'system-ui',
+    /** iOS `UIFontDescriptorSystemDesignSerif` */
+    serif: 'ui-serif',
+    /** iOS `UIFontDescriptorSystemDesignRounded` */
+    rounded: 'ui-rounded',
+    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    mono: 'ui-monospace',
   },
   default: {
-    primary: 'Poppins',
-    secondary: 'Inter',
-    system: 'system-ui',
+    sans: 'normal',
+    serif: 'serif',
+    rounded: 'normal',
+    mono: 'monospace',
   },
   web: {
-    primary: "'Poppins', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-    secondary: "'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-    system: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    serif: "Georgia, 'Times New Roman', serif",
+    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
+    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });

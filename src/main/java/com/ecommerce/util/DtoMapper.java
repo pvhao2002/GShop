@@ -72,7 +72,7 @@ public class DtoMapper {
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())
-                .images(product.getImages())
+                .images(List.copyOf(product.getImages()))
                 .category(toCategoryResponse(product.getCategory()))
                 .isActive(product.getIsActive())
                 .createdAt(product.getCreatedAt())
@@ -91,7 +91,6 @@ public class DtoMapper {
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
-                .parent(category.getParent() != null ? CategoryResponse.builder().id(category.getParent().getId()).build() : null)
                 .build();
     }
 

@@ -18,9 +18,12 @@ import org.springframework.web.context.request.ServletWebRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -36,10 +39,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ErrorResponse> handleConstraintViolation(
             ConstraintViolationException ex, WebRequest request) {
-        
-        log.warn("Constraint violation on request to {}: {}", 
+
+        log.warn("Constraint violation on request to {}: {}",
                 request.getDescription(false), ex.getMessage());
-        
+
         List<ErrorResponse.ValidationError> validationErrors = ex.getConstraintViolations()
                 .stream()
                 .map(violation -> ErrorResponse.ValidationError.builder()
@@ -48,7 +51,7 @@ public class GlobalExceptionHandler {
                         .rejectedValue(violation.getInvalidValue())
                         .build())
                 .collect(Collectors.toList());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("CONSTRAINT_VIOLATION")
                 .message("Constraint validation failed")
@@ -56,7 +59,7 @@ public class GlobalExceptionHandler {
                 .path(extractPath(request))
                 .validationErrors(validationErrors)
                 .build();
-        
+
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
@@ -66,17 +69,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<ErrorResponse> handleValidation(
             ValidationException ex, WebRequest request) {
-        
-        log.warn("Business validation error on request to {}: {}", 
+
+        log.warn("Business validation error on request to {}: {}",
                 request.getDescription(false), ex.getMessage());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("VALIDATION_ERROR")
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
                 .path(extractPath(request))
                 .build();
-        
+
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
@@ -86,17 +89,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFound(
             ResourceNotFoundException ex, WebRequest request) {
-        
-        log.warn("Resource not found on request to {}: {}", 
+
+        log.warn("Resource not found on request to {}: {}",
                 request.getDescription(false), ex.getMessage());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("RESOURCE_NOT_FOUND")
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
                 .path(extractPath(request))
                 .build();
-        
+
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
 
@@ -106,27 +109,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorized(
             UnauthorizedException ex, WebRequest request) {
-        
+
         // Log security event
         HttpServletRequest httpRequest = getHttpServletRequest(request);
         if (httpRequest != null) {
             LoggingUtils.logUnauthorizedAccess(
-                httpRequest.getRequestURI(), 
-                httpRequest.getMethod(), 
-                LoggingUtils.getClientIpAddress(httpRequest)
+                    httpRequest.getRequestURI(),
+                    httpRequest.getMethod(),
+                    LoggingUtils.getClientIpAddress(httpRequest)
             );
         }
-        
-        log.warn("Unauthorized access attempt on request to {}: {}", 
+
+        log.warn("Unauthorized access attempt on request to {}: {}",
                 request.getDescription(false), ex.getMessage());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("UNAUTHORIZED")
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
                 .path(extractPath(request))
                 .build();
-        
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
@@ -136,27 +139,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthentication(
             AuthenticationException ex, WebRequest request) {
-        
+
         // Log security event
         HttpServletRequest httpRequest = getHttpServletRequest(request);
         if (httpRequest != null) {
             String reason = ex instanceof BadCredentialsException ? "Invalid credentials" : "Authentication failed";
             LoggingUtils.logAuthenticationFailure("unknown", LoggingUtils.getClientIpAddress(httpRequest), reason);
         }
-        
-        log.warn("Authentication failed on request to {}: {}", 
+
+        log.warn("Authentication failed on request to {}: {}",
                 request.getDescription(false), ex.getMessage());
-        
-        String message = ex instanceof BadCredentialsException ? 
+
+        String message = ex instanceof BadCredentialsException ?
                 "Invalid credentials provided" : "Authentication failed";
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("AUTHENTICATION_FAILED")
                 .message(message)
                 .timestamp(LocalDateTime.now())
                 .path(extractPath(request))
                 .build();
-        
+
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
@@ -166,28 +169,28 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({AccessDeniedException.class, org.springframework.security.access.AccessDeniedException.class})
     public ResponseEntity<ErrorResponse> handleAccessDenied(
             Exception ex, WebRequest request) {
-        
+
         // Log security event
         HttpServletRequest httpRequest = getHttpServletRequest(request);
         if (httpRequest != null) {
             LoggingUtils.logAccessDenied(
-                httpRequest.getRequestURI(), 
-                httpRequest.getMethod(), 
-                LoggingUtils.getCurrentUserEmail(),
-                LoggingUtils.getClientIpAddress(httpRequest)
+                    httpRequest.getRequestURI(),
+                    httpRequest.getMethod(),
+                    LoggingUtils.getCurrentUserEmail(),
+                    LoggingUtils.getClientIpAddress(httpRequest)
             );
         }
-        
-        log.warn("Access denied on request to {}: {}", 
+
+        log.warn("Access denied on request to {}: {}",
                 request.getDescription(false), ex.getMessage());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("ACCESS_DENIED")
                 .message("You don't have permission to access this resource")
                 .timestamp(LocalDateTime.now())
                 .path(extractPath(request))
                 .build();
-        
+
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
     }
 
@@ -197,17 +200,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(
             IllegalArgumentException ex, WebRequest request) {
-        
-        log.warn("Illegal argument on request to {}: {}", 
+
+        log.warn("Illegal argument on request to {}: {}",
                 request.getDescription(false), ex.getMessage());
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("INVALID_ARGUMENT")
                 .message(ex.getMessage())
                 .timestamp(LocalDateTime.now())
                 .path(extractPath(request))
                 .build();
-        
+
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
@@ -217,20 +220,45 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneral(
             Exception ex, WebRequest request) {
-        
+
         // Log error with context
         LoggingUtils.logError("Unexpected error", ex.getMessage(), ex);
-        log.error("Unexpected error occurred on request to {}: {}", 
+        log.error("Unexpected error occurred on request to {}: {}",
                 request.getDescription(false), ex.getMessage(), ex);
-        
+
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .error("INTERNAL_SERVER_ERROR")
                 .message("An unexpected error occurred. Please try again later.")
                 .timestamp(LocalDateTime.now())
                 .path(extractPath(request))
                 .build();
-        
+
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+    @ExceptionHandler(PaymentException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentException(PaymentException ex, WebRequest request) {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .error("PAYMENT_ERROR")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .path(extractPath(request))
+                .build();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
+    private ResponseEntity<Map<String, Object>> createErrorResponse(String code, String message, HttpStatus status) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        Map<String, Object> error = new HashMap<>();
+
+        error.put("code", code);
+        error.put("message", message);
+        error.put("timestamp", LocalDateTime.now().toString());
+
+        errorResponse.put("error", error);
+
+        return ResponseEntity.status(status).body(errorResponse);
     }
 
     /**
@@ -253,17 +281,17 @@ public class GlobalExceptionHandler {
         }
         return null;
     }
-    
+
     /**
      * Handle validation errors with enhanced response format
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<StandardApiResponse<Object>> handleMethodArgumentNotValidEnhanced(
             MethodArgumentNotValidException ex, HttpServletRequest request) {
-        
-        log.warn("Validation error on request to {}: {}", 
+
+        log.warn("Validation error on request to {}: {}",
                 request.getRequestURI(), ex.getMessage());
-        
+
         List<StandardApiResponse.ErrorDetails> validationErrors = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -273,24 +301,24 @@ public class GlobalExceptionHandler {
                         .field(error.getField())
                         .rejectedValue(error.getRejectedValue())
                         .build())
-                .collect(Collectors.toList());
-        
+                .toList();
+
         StandardApiResponse.ErrorDetails mainError = StandardApiResponse.ErrorDetails.builder()
                 .code("VALIDATION_ERROR")
                 .message("Validation failed for one or more fields")
                 .details(validationErrors.stream().collect(Collectors.toMap(
-                    err -> err.getField(),
-                    err -> err.getMessage()
+                        StandardApiResponse.ErrorDetails::getField,
+                        StandardApiResponse.ErrorDetails::getMessage
                 )))
                 .build();
-        
+
         String requestId = (String) request.getAttribute("requestId");
         String apiVersion = (String) request.getAttribute("apiVersion");
-        
+
         StandardApiResponse<Object> response = StandardApiResponse.error(
-                "Validation failed", mainError, apiVersion != null ? apiVersion : "v1")
+                        "Validation failed", mainError, apiVersion != null ? apiVersion : "v1")
                 .withRequestId(requestId);
-        
+
         return ResponseEntity.badRequest().body(response);
     }
 }

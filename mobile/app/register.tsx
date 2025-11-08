@@ -1,369 +1,177 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
     View,
     Text,
+    TextInput,
     TouchableOpacity,
-    ActivityIndicator,
     StyleSheet,
-    ScrollView,
+    ActivityIndicator,
+    Alert,
     KeyboardAvoidingView,
     Platform,
+    ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/store/authStore';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { FormInput } from '@/components/ui/FormInput';
-import { validateRegistrationData } from '@/utils/validation';
-import { Ionicons } from '@expo/vector-icons';
-
+import {Ionicons} from '@expo/vector-icons';
+import axios from 'axios';
+import {APP_CONFIG} from '@/constants/app-config';
+import {useRouter} from 'expo-router';
+import {useAuthStore} from '@/store/authStore';
 
 export default function RegisterScreen() {
     const router = useRouter();
-    const { register, isLoading } = useAuthStore();
+    const loginStore = useAuthStore((s) => s.login);
     const [form, setForm] = useState({
         firstName: '',
         lastName: '',
         email: '',
         password: '',
-        confirmPassword: '',
         phone: '',
+        city: '',
+        country: '',
     });
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [generalError, setGeneralError] = useState('');
-    const [acceptedTerms, setAcceptedTerms] = useState(false);
-
-    const handleChange = (key: string, value: string) => {
-        setForm(prev => ({ ...prev, [key]: value }));
-        // Clear field-specific error when user starts typing
-        if (errors[key]) {
-            setErrors(prev => ({ ...prev, [key]: '' }));
-        }
-    };
+    const [loading, setLoading] = useState(false);
+    const handleChange = (k: string, v: string) => setForm({...form, [k]: v});
 
     const handleRegister = async () => {
-        // Clear previous errors
-        setErrors({});
-        setGeneralError('');
-
-        const { firstName, lastName, email, password, confirmPassword, phone } = form;
-
-        // Check if terms are accepted
-        if (!acceptedTerms) {
-            setGeneralError('Please accept the Terms and Conditions to continue');
+        const {firstName, lastName, email, password} = form;
+        if (!firstName || !lastName || !email || !password) {
+            Alert.alert('Error', 'Please fill in all required fields');
             return;
         }
-
-        // Check password confirmation
-        if (password !== confirmPassword) {
-            setErrors({ confirmPassword: 'Passwords do not match' });
-            return;
-        }
-
-        // Validate form data
-        const registrationData: any = {
-            firstName,
-            lastName,
-            email,
-            password,
-        };
-
-        // Only add phone if it has a value
-        if (phone.trim()) {
-            registrationData.phone = phone;
-        }
-
-        const validationErrors = validateRegistrationData(registrationData);
-        if (validationErrors.length > 0) {
-            const errorMap: { [key: string]: string } = {};
-            validationErrors.forEach(error => {
-                if (error.toLowerCase().includes('first name')) {
-                    errorMap.firstName = error;
-                } else if (error.toLowerCase().includes('last name')) {
-                    errorMap.lastName = error;
-                } else if (error.toLowerCase().includes('email')) {
-                    errorMap.email = error;
-                } else if (error.toLowerCase().includes('password')) {
-                    errorMap.password = error;
-                } else if (error.toLowerCase().includes('phone')) {
-                    errorMap.phone = error;
-                }
-            });
-            setErrors(errorMap);
-            return;
-        }
-
         try {
-            await register(registrationData);
-            router.replace('/');
+            setLoading(true);
+            const res = await axios.post(`${APP_CONFIG.BASE_URL}${APP_CONFIG.API.AUTH.REGISTER}`, form);
+            const data = res.data;
+            if (data) {
+                loginStore(data);
+                Alert.alert('Success', 'Account created successfully!');
+                router.replace('/(tabs)/profile');
+            } else Alert.alert('Error', 'Unexpected server response');
         } catch (err: any) {
-            setGeneralError(err.message || 'Registration failed. Please try again.');
+            console.log(err)
+            Alert.alert('Registration failed', err.response?.data?.message || 'Please check your details');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <KeyboardAvoidingView
-                style={styles.keyboardView}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            >
-                <ScrollView
-                    contentContainerStyle={styles.scroll}
-                    keyboardShouldPersistTaps="handled"
-                >
-                    <View style={styles.container}>
-                        <View style={styles.header}>
-                            <Text style={styles.brand}>Join Fashionly</Text>
-                            <Text style={styles.tagline}>Your style journey starts here ✨</Text>
-                        </View>
+        <KeyboardAvoidingView
+            style={{flex: 1, backgroundColor: '#fff'}}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <ScrollView contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
+                <Text style={s.title}>Create Account ✨</Text>
+                <Text style={s.subtitle}>Join us and start shopping today</Text>
 
-                        <View style={styles.form}>
-                            {generalError ? <Text style={styles.generalError}>{generalError}</Text> : null}
-
-                            <View style={styles.nameRow}>
-                                <View style={styles.nameField}>
-                                    <FormInput
-                                        label="First Name"
-                                        placeholder="First name"
-                                        value={form.firstName}
-                                        onChangeText={v => handleChange('firstName', v)}
-                                        error={errors.firstName}
-                                        isRequired
-                                        autoCapitalize="words"
-                                    />
-                                </View>
-                                <View style={styles.nameField}>
-                                    <FormInput
-                                        label="Last Name"
-                                        placeholder="Last name"
-                                        value={form.lastName}
-                                        onChangeText={v => handleChange('lastName', v)}
-                                        error={errors.lastName}
-                                        isRequired
-                                        autoCapitalize="words"
-                                    />
-                                </View>
-                            </View>
-
-                            <FormInput
-                                label="Email"
-                                placeholder="Enter your email"
-                                value={form.email}
-                                onChangeText={v => handleChange('email', v)}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                error={errors.email}
-                                isRequired
-                            />
-
-                            <FormInput
-                                label="Phone Number"
-                                placeholder="Enter your phone number (optional)"
-                                value={form.phone}
-                                onChangeText={v => handleChange('phone', v)}
-                                keyboardType="phone-pad"
-                                error={errors.phone}
-                            />
-
-                            <FormInput
-                                label="Password"
-                                placeholder="Create a password"
-                                value={form.password}
-                                onChangeText={v => handleChange('password', v)}
-                                isPassword
-                                autoCapitalize="none"
-                                error={errors.password}
-                                isRequired
-                            />
-
-                            <FormInput
-                                label="Confirm Password"
-                                placeholder="Re-enter your password"
-                                value={form.confirmPassword}
-                                onChangeText={v => handleChange('confirmPassword', v)}
-                                isPassword
-                                autoCapitalize="none"
-                                error={errors.confirmPassword}
-                                isRequired
-                            />
-
-                            <TouchableOpacity
-                                style={styles.termsContainer}
-                                onPress={() => setAcceptedTerms(!acceptedTerms)}
-                            >
-                                <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
-                                    {acceptedTerms && (
-                                        <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-                                    )}
-                                </View>
-                                <Text style={styles.termsText}>
-                                    I agree to the{' '}
-                                    <Text style={styles.termsLink}>Terms and Conditions</Text>
-                                    {' '}and{' '}
-                                    <Text style={styles.termsLink}>Privacy Policy</Text>
-                                </Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[styles.button, isLoading && styles.buttonDisabled]}
-                                onPress={handleRegister}
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <ActivityIndicator color="#fff" size="small" />
-                                ) : (
-                                    <Text style={styles.buttonText}>Create Account</Text>
-                                )}
-                            </TouchableOpacity>
-
-                            <View style={styles.loginContainer}>
-                                <Text style={styles.loginText}>Already have an account? </Text>
-                                <TouchableOpacity onPress={() => router.push('/login')}>
-                                    <Text style={styles.loginLink}>Sign In</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
+                <View style={s.row}>
+                    <View style={[s.inputBox, {flex: 1, marginRight: 6}]}>
+                        <Ionicons name="person-outline" size={20} color="#6b7280" style={s.icon}/>
+                        <TextInput
+                            placeholder="First name"
+                            style={s.input}
+                            value={form.firstName}
+                            onChangeText={(v) => handleChange('firstName', v)}
+                        />
                     </View>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </SafeAreaView>
+                    <View style={[s.inputBox, {flex: 1, marginLeft: 6}]}>
+                        <TextInput
+                            placeholder="Last name"
+                            style={s.input}
+                            value={form.lastName}
+                            onChangeText={(v) => handleChange('lastName', v)}
+                        />
+                    </View>
+                </View>
+
+                <View style={s.inputBox}>
+                    <Ionicons name="mail-outline" size={20} color="#6b7280" style={s.icon}/>
+                    <TextInput
+                        placeholder="Email"
+                        keyboardType="email-address"
+                        style={s.input}
+                        value={form.email}
+                        onChangeText={(v) => handleChange('email', v)}
+                    />
+                </View>
+
+                <View style={s.inputBox}>
+                    <Ionicons name="lock-closed-outline" size={20} color="#6b7280" style={s.icon}/>
+                    <TextInput
+                        placeholder="Password"
+                        secureTextEntry
+                        style={s.input}
+                        value={form.password}
+                        onChangeText={(v) => handleChange('password', v)}
+                    />
+                </View>
+
+                <View style={s.inputBox}>
+                    <Ionicons name="call-outline" size={20} color="#6b7280" style={s.icon}/>
+                    <TextInput
+                        placeholder="Phone number"
+                        keyboardType="phone-pad"
+                        style={s.input}
+                        value={form.phone}
+                        onChangeText={(v) => handleChange('phone', v)}
+                    />
+                </View>
+
+                <View style={s.inputBox}>
+                    <Ionicons name="home-outline" size={20} color="#6b7280" style={s.icon}/>
+                    <TextInput
+                        placeholder="City"
+                        style={s.input}
+                        value={form.city}
+                        onChangeText={(v) => handleChange('city', v)}
+                    />
+                </View>
+
+                <View style={s.inputBox}>
+                    <Ionicons name="earth-outline" size={20} color="#6b7280" style={s.icon}/>
+                    <TextInput
+                        placeholder="Country"
+                        style={s.input}
+                        value={form.country}
+                        onChangeText={(v) => handleChange('country', v)}
+                    />
+                </View>
+
+                <TouchableOpacity style={s.btn} onPress={handleRegister} disabled={loading}>
+                    {loading ? <ActivityIndicator color="#fff"/> : <Text style={s.btnText}>Register</Text>}
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => router.push('/login')}>
+                    <Text style={s.link}>Already have an account? Login</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    keyboardView: {
-        flex: 1,
-    },
-    scroll: {
-        flexGrow: 1,
-        paddingBottom: 32,
-    },
-    container: {
-        flex: 1,
+const s = StyleSheet.create({
+    container: {flexGrow: 1, justifyContent: 'center', padding: 24},
+    title: {fontSize: 26, fontWeight: '800', color: '#111827', marginBottom: 8},
+    subtitle: {color: '#6b7280', marginBottom: 24},
+    row: {flexDirection: 'row', marginBottom: 16},
+    inputBox: {
+        flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 24,
-        backgroundColor: '#FFFFFF',
-    },
-    header: {
-        alignItems: 'center',
-        marginBottom: 32,
-        marginTop: 32,
-    },
-    brand: {
-        fontSize: 28,
-        fontWeight: '800',
-        color: '#000000',
-        letterSpacing: 1.5,
-        fontFamily: 'Poppins',
-    },
-    tagline: {
-        fontSize: 16,
-        color: '#666666',
-        marginTop: 8,
-        fontFamily: 'Inter',
-    },
-    form: {
-        width: '100%',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 24,
-        shadowColor: '#000000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 12,
-        elevation: 4,
         borderWidth: 1,
-        borderColor: '#F5F5F5',
-    },
-    nameRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: -16, // Compensate for FormInput margin
-    },
-    nameField: {
-        flex: 1,
-        marginHorizontal: 4,
-    },
-    termsContainer: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        marginTop: 16,
-        marginBottom: 8,
-    },
-    checkbox: {
-        width: 20,
-        height: 20,
-        borderWidth: 2,
-        borderColor: '#E8E8E8',
-        borderRadius: 4,
-        marginRight: 12,
-        marginTop: 2,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    checkboxChecked: {
-        backgroundColor: '#000000',
-        borderColor: '#000000',
-    },
-    termsText: {
-        flex: 1,
-        fontSize: 14,
-        color: '#666666',
-        lineHeight: 20,
-        fontFamily: 'Inter',
-    },
-    termsLink: {
-        color: '#000000',
-        fontWeight: '500',
-        textDecorationLine: 'underline',
-    },
-    button: {
-        marginTop: 24,
-        backgroundColor: '#000000',
-        borderRadius: 8,
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 48,
-    },
-    buttonDisabled: {
-        opacity: 0.7,
-    },
-    buttonText: {
-        color: '#FFFFFF',
-        fontWeight: '600',
-        fontSize: 16,
-        fontFamily: 'Poppins',
-    },
-    loginContainer: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 24,
-    },
-    loginText: {
-        color: '#666666',
-        fontSize: 16,
-        fontFamily: 'Inter',
-    },
-    loginLink: {
-        color: '#000000',
-        fontWeight: '600',
-        fontSize: 16,
-        fontFamily: 'Inter',
-    },
-    generalError: {
-        color: '#D32F2F',
+        borderColor: '#d1d5db',
+        borderRadius: 12,
         marginBottom: 16,
-        textAlign: 'center',
-        fontSize: 14,
-        fontFamily: 'Inter',
-        backgroundColor: '#FFEBEE',
-        padding: 12,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#FFCDD2',
+        paddingHorizontal: 10,
     },
+    icon: {marginRight: 6},
+    input: {flex: 1, height: 44, fontSize: 15},
+    btn: {
+        backgroundColor: '#2563eb',
+        paddingVertical: 12,
+        borderRadius: 30,
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    btnText: {color: '#fff', fontWeight: '700', fontSize: 16},
+    link: {textAlign: 'center', marginTop: 18, color: '#2563eb', fontWeight: '600'},
 });

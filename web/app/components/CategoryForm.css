@@ -1,0 +1,51 @@
+.category-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.category-form label {
+    font-weight: 500;
+    color: #334155;
+    margin-bottom: 4px;
+}
+
+.category-form input,
+.category-form textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    outline: none;
+}
+
+.category-form textarea {
+    resize: none;
+    min-height: 70px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.save-btn {
+    background: linear-gradient(90deg, #2563eb, #38bdf8);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+}
+
+.cancel-btn {
+    background: #e2e8f0;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #1e293b;
+    cursor: pointer;
+}

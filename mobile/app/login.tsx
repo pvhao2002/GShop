@@ -2,268 +2,119 @@ import React, { useState } from 'react';
 import {
     View,
     Text,
+    TextInput,
     TouchableOpacity,
-    ActivityIndicator,
     StyleSheet,
-    Image,
+    ActivityIndicator,
+    Alert,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { APP_CONFIG } from '@/constants/app-config';
 import { useAuthStore } from '@/store/authStore';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { FormInput } from '@/components/ui/FormInput';
-import { AnimatedButton } from '@/components/ui/AnimatedButton';
-import { AnimatedScreen } from '@/components/shared/AnimatedScreen';
-import { validateLoginCredentials } from '@/utils/validation';
+import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
     const router = useRouter();
-    const { login, isLoading } = useAuthStore();
+    const loginStore = useAuthStore((s) => s.login);
+
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [generalError, setGeneralError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const handleLogin = async () => {
-        // Clear previous errors
-        setErrors({});
-        setGeneralError('');
-
-        // Validate form data
-        const validationErrors = validateLoginCredentials({ email, password });
-        if (validationErrors.length > 0) {
-            const errorMap: { [key: string]: string } = {};
-            validationErrors.forEach(error => {
-                if (error.toLowerCase().includes('email')) {
-                    errorMap.email = error;
-                } else if (error.toLowerCase().includes('password')) {
-                    errorMap.password = error;
-                }
-            });
-            setErrors(errorMap);
+        if (!email || !password) {
+            Alert.alert('Error', 'Please fill in all fields');
             return;
         }
-
         try {
-            await login(email, password);
-            router.replace('/(user)');
+            setLoading(true);
+            const res = await axios.post(`${APP_CONFIG.BASE_URL}${APP_CONFIG.API.AUTH.LOGIN}`, {
+                email,
+                password,
+            });
+            const data = res.data;
+            if (data) {
+                loginStore(data);
+                Alert.alert('Success', 'Welcome back!');
+                router.replace('/(tabs)/profile');
+            } else Alert.alert('Error', 'Invalid response from server');
         } catch (err: any) {
-            setGeneralError(err.message || 'Login failed. Please try again.');
+            Alert.alert('Login failed', err.response?.data?.message || 'Please check your credentials');
+        } finally {
+            setLoading(false);
         }
     };
 
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <AnimatedScreen>
-                <KeyboardAvoidingView
-                    style={styles.keyboardView}
-                    behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                >
-                    <ScrollView
-                        contentContainerStyle={styles.scroll}
-                        keyboardShouldPersistTaps="handled"
-                    >
-                        <View style={styles.container}>
-                        {/* Logo + Title */}
-                        <View style={styles.header}>
-                            <Image
-                                source={require('../assets/images/react-logo.png')}
-                                style={styles.logo}
-                                resizeMode="contain"
-                            />
-                            <Text style={styles.brand}>FASHIONLY</Text>
-                            <Text style={styles.tagline}>Style that speaks for you 👗</Text>
-                        </View>
+        <KeyboardAvoidingView
+            style={{ flex: 1, backgroundColor: '#fff' }}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+            <ScrollView contentContainerStyle={s.container} showsVerticalScrollIndicator={false}>
+                <Text style={s.title}>Welcome Back 👋</Text>
+                <Text style={s.subtitle}>Login to continue shopping</Text>
 
-                        {/* Form */}
-                        <View style={styles.form}>
-                            {generalError ? <Text style={styles.generalError}>{generalError}</Text> : null}
+                <View style={s.inputBox}>
+                    <Ionicons name="mail-outline" size={20} color="#6b7280" style={s.icon} />
+                    <TextInput
+                        placeholder="Email"
+                        style={s.input}
+                        keyboardType="email-address"
+                        value={email}
+                        onChangeText={setEmail}
+                        autoCapitalize="none"
+                    />
+                </View>
 
-                            <FormInput
-                                label="Email"
-                                placeholder="Enter your email"
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                error={errors.email}
-                                isRequired
-                            />
+                <View style={s.inputBox}>
+                    <Ionicons name="lock-closed-outline" size={20} color="#6b7280" style={s.icon} />
+                    <TextInput
+                        placeholder="Password"
+                        style={s.input}
+                        secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
+                    />
+                </View>
 
-                            <FormInput
-                                label="Password"
-                                placeholder="Enter your password"
-                                value={password}
-                                onChangeText={setPassword}
-                                isPassword
-                                autoCapitalize="none"
-                                error={errors.password}
-                                isRequired
-                            />
+                <TouchableOpacity style={s.btn} onPress={handleLogin} disabled={loading}>
+                    {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.btnText}>Login</Text>}
+                </TouchableOpacity>
 
-                            <TouchableOpacity
-                                style={styles.forgotButton}
-                                onPress={() => router.push('/forgot-password')}
-                            >
-                                <Text style={styles.forgotText}>Forgot Password?</Text>
-                            </TouchableOpacity>
-
-                            <AnimatedButton
-                                title="Sign In"
-                                onPress={handleLogin}
-                                disabled={isLoading}
-                                loading={isLoading}
-                                variant="primary"
-                                size="large"
-                                style={styles.button}
-                            />
-
-                            <View style={styles.registerContainer}>
-                                <Text style={styles.registerText}>Don't have an account? </Text>
-                                <TouchableOpacity onPress={() => router.push('/register')}>
-                                    <Text style={styles.registerLink}>Sign Up</Text>
-                                </TouchableOpacity>
-                            </View>
-
-                            <View style={styles.adminContainer}>
-                                <TouchableOpacity onPress={() => router.push('/admin-login')}>
-                                    <Text style={styles.adminLink}>Admin Portal →</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </View>
-                        </View>
-                    </ScrollView>
-                </KeyboardAvoidingView>
-            </AnimatedScreen>
-        </SafeAreaView>
+                <TouchableOpacity onPress={() => router.push('/register')}>
+                    <Text style={s.link}>Don’t have an account? Register</Text>
+                </TouchableOpacity>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
-const styles = StyleSheet.create({
-    safeArea: {
-        flex: 1,
-        backgroundColor: '#FFFFFF',
-    },
-    keyboardView: {
-        flex: 1,
-    },
-    scroll: {
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingBottom: 32,
-    },
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        backgroundColor: '#FFFFFF',
-    },
-    header: {
-        alignItems: 'center',
-        marginBottom: 48,
-        marginTop: 32,
-    },
-    logo: {
-        width: 80,
-        height: 80,
-        marginBottom: 16,
-    },
-    brand: {
-        fontSize: 28,
-        fontWeight: '800',
-        color: '#000000',
-        letterSpacing: 1.5,
-        fontFamily: 'Poppins',
-    },
-    tagline: {
-        fontSize: 16,
-        color: '#666666',
-        marginTop: 8,
-        fontFamily: 'Inter',
-    },
-    form: {
-        width: '100%',
-        backgroundColor: '#FFFFFF',
-        borderRadius: 16,
-        padding: 24,
-        shadowColor: '#000000',
-        shadowOpacity: 0.08,
-        shadowOffset: { width: 0, height: 4 },
-        shadowRadius: 12,
-        elevation: 4,
-        borderWidth: 1,
-        borderColor: '#F5F5F5',
-    },
-    forgotButton: {
-        alignSelf: 'flex-end',
-        marginTop: 8,
-        marginBottom: 8,
-    },
-    forgotText: {
-        color: '#000000',
-        fontSize: 14,
-        fontWeight: '500',
-        fontFamily: 'Inter',
-    },
-    button: {
-        marginTop: 24,
-        backgroundColor: '#000000',
-        borderRadius: 8,
-        paddingVertical: 16,
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 48,
-    },
-    buttonDisabled: {
-        opacity: 0.7,
-    },
-    buttonText: {
-        color: '#FFFFFF',
-        fontWeight: '600',
-        fontSize: 16,
-        fontFamily: 'Poppins',
-    },
-    registerContainer: {
+const s = StyleSheet.create({
+    container: { flexGrow: 1, justifyContent: 'center', padding: 24 },
+    title: { fontSize: 26, fontWeight: '800', color: '#111827', marginBottom: 8 },
+    subtitle: { color: '#6b7280', marginBottom: 24 },
+    inputBox: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        marginTop: 24,
-    },
-    registerText: {
-        color: '#666666',
-        fontSize: 16,
-        fontFamily: 'Inter',
-    },
-    registerLink: {
-        color: '#000000',
-        fontWeight: '600',
-        fontSize: 16,
-        fontFamily: 'Inter',
-    },
-    generalError: {
-        color: '#D32F2F',
-        marginBottom: 16,
-        textAlign: 'center',
-        fontSize: 14,
-        fontFamily: 'Inter',
-        backgroundColor: '#FFEBEE',
-        padding: 12,
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#FFCDD2',
-    },
-    adminContainer: {
         alignItems: 'center',
-        marginTop: 16,
-        paddingTop: 16,
-        borderTopWidth: 1,
-        borderTopColor: '#F5F5F5',
+        borderWidth: 1,
+        borderColor: '#d1d5db',
+        borderRadius: 12,
+        marginBottom: 16,
+        paddingHorizontal: 10,
     },
-    adminLink: {
-        color: '#4A5D23',
-        fontSize: 14,
-        fontWeight: '600',
-        fontFamily: 'Inter',
+    icon: { marginRight: 6 },
+    input: { flex: 1, height: 44, fontSize: 15 },
+    btn: {
+        backgroundColor: '#2563eb',
+        paddingVertical: 12,
+        borderRadius: 30,
+        alignItems: 'center',
+        marginTop: 8,
     },
+    btnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+    link: { textAlign: 'center', marginTop: 18, color: '#2563eb', fontWeight: '600' },
 });

@@ -14,6 +14,7 @@ import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -36,30 +37,30 @@ public class ApplicationHealthIndicator implements HealthIndicator {
     public Health health() {
         try {
             Health.Builder healthBuilder = Health.up();
-            
+
             // Check memory usage
             MemoryStatus memoryStatus = checkMemoryUsage();
             healthBuilder.withDetail("memory", memoryStatus.getDetails());
-            
+
             // Check data integrity
             DataIntegrityStatus dataStatus = checkDataIntegrity();
             healthBuilder.withDetail("dataIntegrity", dataStatus.getDetails());
-            
+
             // Add application metrics
             healthBuilder.withDetail("applicationMetrics", getApplicationMetrics());
-            
+
             // Add system information
             healthBuilder.withDetail("systemInfo", getSystemInfo());
-            
+
             // Determine overall health status
             if (memoryStatus.isCritical() || !dataStatus.isHealthy()) {
                 healthBuilder = Health.down();
             } else if (memoryStatus.hasWarning()) {
                 healthBuilder.withDetail("warning", "Memory usage is high");
             }
-            
+
             return healthBuilder.build();
-            
+
         } catch (Exception e) {
             log.error("Application health check failed", e);
             return Health.down()
@@ -72,20 +73,20 @@ public class ApplicationHealthIndicator implements HealthIndicator {
     private MemoryStatus checkMemoryUsage() {
         MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
         MemoryUsage heapMemory = memoryBean.getHeapMemoryUsage();
-        
+
         long used = heapMemory.getUsed();
         long max = heapMemory.getMax();
         double usageRatio = (double) used / max;
-        
+
         boolean hasWarning = usageRatio > MEMORY_WARNING_THRESHOLD;
         boolean isCritical = usageRatio > MEMORY_CRITICAL_THRESHOLD;
-        
+
         return new MemoryStatus(
-            formatBytes(used),
-            formatBytes(max),
-            String.format("%.2f%%", usageRatio * 100),
-            hasWarning,
-            isCritical
+                formatBytes(used),
+                formatBytes(max),
+                String.format("%.2f%%", usageRatio * 100),
+                hasWarning,
+                isCritical
         );
     }
 
@@ -95,17 +96,17 @@ public class ApplicationHealthIndicator implements HealthIndicator {
             long userCount = userRepository.count();
             long productCount = productRepository.count();
             long orderCount = orderRepository.count();
-            
+
             // Basic sanity checks
             boolean isHealthy = userCount >= 0 && productCount >= 0 && orderCount >= 0;
-            
+
             return new DataIntegrityStatus(
-                isHealthy,
-                userCount,
-                productCount,
-                orderCount
+                    isHealthy,
+                    userCount,
+                    productCount,
+                    orderCount
             );
-            
+
         } catch (Exception e) {
             log.warn("Data integrity check failed: {}", e.getMessage());
             return new DataIntegrityStatus(false, -1, -1, -1);
@@ -113,25 +114,26 @@ public class ApplicationHealthIndicator implements HealthIndicator {
     }
 
     private Object getApplicationMetrics() {
-        return Map.of(
-            "uptime", getUptime(),
-            "jvmVersion", System.getProperty("java.version"),
-            "springBootVersion", getClass().getPackage().getImplementationVersion(),
-            "activeProfiles", System.getProperty("spring.profiles.active", "default"),
-            "timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        );
+        Map<String, Object> details = new HashMap<>();
+        details.put("database", "connected");
+        details.put("uptime", getUptime());
+        details.put("jvmVersion", System.getProperty("java.version"));
+        details.put("springBootVersion", getClass().getPackage().getImplementationVersion());
+        details.put("activeProfiles", System.getProperty("spring.profiles.active", "default"));
+        details.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        return details;
     }
 
     private Object getSystemInfo() {
         Runtime runtime = Runtime.getRuntime();
         return Map.of(
-            "availableProcessors", runtime.availableProcessors(),
-            "totalMemory", formatBytes(runtime.totalMemory()),
-            "freeMemory", formatBytes(runtime.freeMemory()),
-            "maxMemory", formatBytes(runtime.maxMemory()),
-            "osName", System.getProperty("os.name"),
-            "osVersion", System.getProperty("os.version"),
-            "javaVendor", System.getProperty("java.vendor")
+                "availableProcessors", runtime.availableProcessors(),
+                "totalMemory", formatBytes(runtime.totalMemory()),
+                "freeMemory", formatBytes(runtime.freeMemory()),
+                "maxMemory", formatBytes(runtime.maxMemory()),
+                "osName", System.getProperty("os.name"),
+                "osVersion", System.getProperty("os.version"),
+                "javaVendor", System.getProperty("java.vendor")
         );
     }
 
@@ -141,9 +143,9 @@ public class ApplicationHealthIndicator implements HealthIndicator {
         long minutes = seconds / 60;
         long hours = minutes / 60;
         long days = hours / 24;
-        
-        return String.format("%dd %dh %dm %ds", 
-            days, hours % 24, minutes % 60, seconds % 60);
+
+        return String.format("%dd %dh %dm %ds",
+                days, hours % 24, minutes % 60, seconds % 60);
     }
 
     private String formatBytes(long bytes) {
@@ -170,10 +172,10 @@ public class ApplicationHealthIndicator implements HealthIndicator {
 
         public Object getDetails() {
             return Map.of(
-                "used", used,
-                "max", max,
-                "percentage", percentage,
-                "status", isCritical ? "CRITICAL" : hasWarning ? "WARNING" : "OK"
+                    "used", used,
+                    "max", max,
+                    "percentage", percentage,
+                    "status", isCritical ? "CRITICAL" : hasWarning ? "WARNING" : "OK"
             );
         }
 
@@ -201,11 +203,11 @@ public class ApplicationHealthIndicator implements HealthIndicator {
 
         public Object getDetails() {
             return Map.of(
-                "status", healthy ? "HEALTHY" : "UNHEALTHY",
-                "userCount", userCount,
-                "productCount", productCount,
-                "orderCount", orderCount,
-                "repositoriesAccessible", userCount >= 0 && productCount >= 0 && orderCount >= 0
+                    "status", healthy ? "HEALTHY" : "UNHEALTHY",
+                    "userCount", userCount,
+                    "productCount", productCount,
+                    "orderCount", orderCount,
+                    "repositoriesAccessible", userCount >= 0 && productCount >= 0 && orderCount >= 0
             );
         }
 

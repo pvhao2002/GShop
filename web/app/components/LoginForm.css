@@ -1,0 +1,114 @@
+/* Nền toàn trang */
+.login-page {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); /* xanh navy -> xanh lam đậm */
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+/* Hiệu ứng khối trong suốt */
+.login-overlay {
+    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    padding: 40px 50px;
+    width: 380px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Nội dung form */
+.login-card {
+    color: #e2e8f0; /* xám trắng nhạt */
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+}
+
+.brand {
+    font-size: 32px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #38bdf8, #3b82f6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-size: 14px;
+    opacity: 0.85;
+    margin-bottom: 28px;
+}
+
+/* Ô input */
+.input-group {
+    text-align: left;
+    margin-bottom: 18px;
+}
+
+.input-group label {
+    font-size: 14px;
+    margin-bottom: 6px;
+    display: block;
+    color: #cbd5e1;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.08);
+    color: #f8fafc;
+    font-size: 15px;
+    outline: none;
+    transition: border 0.2s, background 0.2s;
+}
+
+.input-group input::placeholder {
+    color: #cbd5e1;
+    opacity: 0.7;
+}
+
+.input-group input:focus {
+    border: 1px solid #60a5fa;
+    background: rgba(255, 255, 255, 0.12);
+}
+
+/* Nút đăng nhập */
+.login-btn {
+    width: 100%;
+    padding: 12px 0;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #2563eb, #38bdf8);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+    transform: scale(1.03);
+    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
+}
+
+/* Thông báo lỗi */
+.error {
+    color: #fee2e2;
+    font-size: 13px;
+    margin-bottom: 10px;
+    background: rgba(239, 68, 68, 0.15);
+    border-radius: 6px;
+    padding: 6px;
+}
+
+/* Ghi chú nhỏ */
+.note {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #cbd5e1;
+    opacity: 0.75;
+}

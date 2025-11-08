@@ -1,80 +1,28 @@
-import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { useAuthStore } from '../store/authStore';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AnimatedScreen, ErrorBoundary, NetworkStatus } from '../components/shared';
-import { globalErrorHandler } from '../utils/globalErrorHandler';
+import {DarkTheme, DefaultTheme, ThemeProvider} from '@react-navigation/native';
+import {Stack} from 'expo-router';
+import {StatusBar} from 'expo-status-bar';
+import 'react-native-reanimated';
+
+import {useColorScheme} from '@/hooks/use-color-scheme';
+
+export const unstable_settings = {
+    anchor: '(tabs)',
+};
 
 export default function RootLayout() {
-    const { initializeAuth } = useAuthStore();
-    const [ready, setReady] = useState(false);
-
-    useEffect(() => {
-        const init = async () => {
-            try {
-                await initializeAuth();
-            } catch (error) {
-                console.error('Auth initialization error:', error);
-            } finally {
-                setReady(true);
-            }
-        };
-        init();
-    }, []);
-
-    if (!ready) {
-        return (
-            <SafeAreaProvider>
-                <View style={styles.loadingContainer}>
-                    <ActivityIndicator size="large" color="#000000" />
-                </View>
-            </SafeAreaProvider>
-        );
-    }
-
+    const colorScheme = useColorScheme();
     return (
-        <SafeAreaProvider>
-            <ErrorBoundary
-                onError={(error, errorInfo) => {
-                    globalErrorHandler.handleError(
-                        error,
-                        {
-                            component: 'RootLayout',
-                            action: 'render',
-                            timestamp: new Date().toISOString(),
-                            additionalData: { errorInfo },
-                        },
-                        'critical',
-                        false // Don't show alert as ErrorBoundary will handle UI
-                    );
-                }}
-                showDetails={__DEV__}
-            >
-                <Stack screenOptions={{ 
-                    headerShown: false,
-                    animation: 'slide_from_right',
-                    animationDuration: 300,
-                }}>
-                    <Stack.Screen name="index" />
-                    <Stack.Screen name="login" />
-                    <Stack.Screen name="register" />
-                    <Stack.Screen name="forgot-password" />
-                    <Stack.Screen name="admin-login" />
-                    <Stack.Screen name="(admin)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(user)" options={{ headerShown: false }} />
-                </Stack>
-                <NetworkStatus position="top" showWhenOnline={true} />
-            </ErrorBoundary>
-        </SafeAreaProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+                <Stack.Screen name="(checkout)" options={{title: ''}}/>
+                <Stack.Screen name="(profile)" options={{title: ''}}/>
+                <Stack.Screen name="(product)" options={{title: ''}}/>
+                <Stack.Screen name="(tabs)" options={{headerShown: false, title: '',}}/>
+                <Stack.Screen name="modal" options={{presentation: 'modal', title: 'Modal'}}/>
+                <Stack.Screen name="register" options={{title: '',}}/>
+                <Stack.Screen name="login" options={{title: '',}}/>
+            </Stack>
+            <StatusBar style="auto"/>
+        </ThemeProvider>
     );
 }
-
-const styles = StyleSheet.create({
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFFFFF',
-    },
-});

@@ -50,11 +50,7 @@ public class AdminController {
      */
     @PostMapping("/products")
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
-        log.debug("POST /api/admin/products - Creating product: {}", request.getName());
-        
         ProductResponse createdProduct = productService.createProduct(request);
-        
-        log.info("Created product with id: {}", createdProduct.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
     }
     
@@ -70,12 +66,7 @@ public class AdminController {
     public ResponseEntity<ProductResponse> updateProduct(
             @PathVariable Long id,
             @Valid @RequestBody UpdateProductRequest request) {
-        
-        log.debug("PUT /api/admin/products/{} - Updating product", id);
-        
         ProductResponse updatedProduct = productService.updateProduct(id, request);
-        
-        log.info("Updated product with id: {}", updatedProduct.getId());
         return ResponseEntity.ok(updatedProduct);
     }
     
@@ -198,12 +189,7 @@ public class AdminController {
             @RequestParam(required = false) OrderStatus status,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        
-        log.debug("GET /api/admin/orders - page: {}, size: {}, status: {}", page, size, status);
-        
         PagedResponse<OrderResponse> orders = orderService.getAllOrders(page, size, status, startDate, endDate);
-        
-        log.info("Retrieved {} orders for admin", orders.getTotalElements());
         return ResponseEntity.ok(orders);
     }
     

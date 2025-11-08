@@ -1,0 +1,77 @@
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.65);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem; /* để tránh dính sát màn hình trên mobile */
+    overflow-y: auto; /* 🔥 Cho phép overlay tự scroll khi form cao hơn viewport */
+}
+
+.modal-container {
+    background: #fff;
+    color: #0f172a;
+    border-radius: 12px;
+    width: 631px;
+    max-width: 95%;
+    max-height: 90vh; /* 🔥 Giới hạn chiều cao để tránh tràn */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-container header {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-container h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.modal-body {
+    flex: 1;
+    padding: 1.2rem;
+    overflow-y: auto; /* 🔥 Cuộn nội dung form trong modal */
+    scrollbar-width: thin;
+    scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+/* Optional: thẩm mỹ scrollbar */
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background-color: #94a3b8;
+    border-radius: 10px;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #64748b;
+    cursor: pointer;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

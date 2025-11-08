@@ -1,0 +1,64 @@
+.image-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.image-modal-container {
+    background: #fff;
+    border-radius: 16px;
+    width: 80vw; /* 🔥 modal rộng hơn (80% viewport) */
+    max-width: 1000px; /* 🔥 giới hạn tối đa cho màn lớn */
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    padding: 1.5rem 2rem 2rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease-in-out;
+}
+
+.close-btn {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    font-size: 24px;
+    color: #475569;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.close-btn:hover {
+    transform: scale(1.2);
+}
+
+.image-grid {
+    display: flex;
+    flex-wrap: wrap; /* ✅ xuống hàng khi đầy */
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    width: 100%;
+}
+
+.image-item {
+    height: 350px; /* cao hơn để ảnh rõ hơn */
+    object-fit: cover;
+    border-radius: 10px;
+    flex: 1 1 240px; /* ✅ mỗi ảnh chiếm tối thiểu 240px */
+    max-width: calc(33.33% - 1rem);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.image-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}

@@ -58,47 +58,48 @@ public class SecurityConfig {
         log.info("Configuring Spring Security filter chain");
 
         http
-            // Disable CSRF for REST API
-            .csrf(AbstractHttpConfigurer::disable)
-            
-            // Configure CORS using dedicated configuration
-            .cors(cors -> cors.configurationSource(corsConfigurationSource))
-            
-            // Configure authorization rules
-            .authorizeHttpRequests(auth -> auth
-                // Public endpoints - authentication
-                .requestMatchers("/api/auth/**").permitAll()
-                
-                // Public endpoints - products (GET only)
-                .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
-                
-                // Admin endpoints - require ADMIN role
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                
-                // User endpoints - require USER role
-                .requestMatchers("/api/orders/**").hasRole("USER")
-                .requestMatchers("/api/users/**").hasRole("USER")
-                
-                // Actuator endpoints
-                .requestMatchers("/actuator/health").permitAll()
-                .requestMatchers("/actuator/**").hasRole("ADMIN")
-                
-                // Error endpoints
-                .requestMatchers("/error").permitAll()
-                
-                // All other requests require authentication
-                .anyRequest().authenticated()
-            )
-            
-            // Configure exception handling
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-            )
-            
-            // Configure session management (stateless for JWT)
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            );
+                // Disable CSRF for REST API
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // Configure CORS using dedicated configuration
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
+
+                // Configure authorization rules
+                .authorizeHttpRequests(auth -> auth
+                        // Public endpoints - authentication
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/payment/vnpay/return").permitAll()
+
+                        // Public endpoints - products (GET only)
+                        .requestMatchers(HttpMethod.GET, "/api/products/**").permitAll()
+
+                        // Admin endpoints - require ADMIN role
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                        // User endpoints - require USER role
+                        .requestMatchers("/api/orders/**").hasRole("USER")
+                        .requestMatchers("/api/users/**").hasRole("USER")
+
+                        // Actuator endpoints
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
+
+                        // Error endpoints
+                        .requestMatchers("/error").permitAll()
+
+                        // All other requests require authentication
+                        .anyRequest().authenticated()
+                )
+
+                // Configure exception handling
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
+
+                // Configure session management (stateless for JWT)
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                );
 
         // Add JWT filter before UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

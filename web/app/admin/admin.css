@@ -1,0 +1,107 @@
+.admin-layout {
+    display: flex;
+    height: 100vh;
+    background: #f6f7fb;
+    color: #222;
+}
+
+.admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #f3f4f6;
+}
+
+.admin-content {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+
+.sidebar {
+    width: 230px;
+    background: #121826;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+.sidebar .logo {
+    margin-bottom: 1rem;
+    font-size: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    margin: 12px 0;
+}
+
+.sidebar a {
+    color: #ccc;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    color: #fff;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background: #fff;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.page-container {
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+.admin-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.admin-card:hover {
+    transform: translateY(-3px);
+}
+
+.admin-card .icon {
+    background: #2563eb;
+    color: #fff;
+    padding: 10px;
+    border-radius: 10px;
+    margin-right: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.admin-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.admin-card h2 {
+    margin: 2px 0 0;
+    font-size: 1.4rem;
+    color: #111827;
+}

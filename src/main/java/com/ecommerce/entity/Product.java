@@ -11,7 +11,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * JPA Entity representing a product in the e-commerce system.
@@ -40,9 +42,9 @@ public class Product {
     
     @ElementCollection
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "longtext")
     @Builder.Default
-    private List<String> images = new ArrayList<>();
+    private Set<String> images = new HashSet<>();
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -50,7 +52,7 @@ public class Product {
     
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<ProductVariant> variants = new ArrayList<>();
+    private Set<ProductVariant> variants = new HashSet<>();
     
     @Builder.Default
     private Boolean isActive = true;

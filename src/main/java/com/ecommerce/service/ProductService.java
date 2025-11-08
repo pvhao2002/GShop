@@ -2,6 +2,7 @@ package com.ecommerce.service;
 
 import com.ecommerce.dto.common.PagedResponse;
 import com.ecommerce.dto.product.*;
+import com.ecommerce.entity.Product;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,7 +12,9 @@ import java.util.List;
  * Provides methods for product retrieval, search, and category management.
  */
 public interface ProductService {
-    
+    List<ProductResponse> topTrendingProducts();
+    List<ProductResponse> getFlashSaleProducts();
+    List<ProductResponse> top20NewProducts();
     // Public product operations
     PagedResponse<ProductResponse> getAllProducts(int page, int size, Long categoryId, String search, 
                                                  BigDecimal minPrice, BigDecimal maxPrice);
@@ -21,8 +24,6 @@ public interface ProductService {
     PagedResponse<ProductResponse> searchProducts(String query, int page, int size);
     
     List<CategoryResponse> getAllCategories();
-    
-    List<CategoryResponse> getRootCategories();
     
     List<CategoryResponse> getCategoriesWithProducts();
     

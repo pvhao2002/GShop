@@ -49,15 +49,29 @@ public class AuthController {
      * @return Authentication response with JWT tokens and user info
      */
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> loginUser(@Valid @RequestBody LoginRequest request) {
         log.info("Login request received for email: {}", request.getEmail());
         
         try {
-            AuthResponse response = authService.login(request);
+            AuthResponse response = authService.login(request, null);
             log.info("User logged in successfully: {}", request.getEmail());
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Login failed for email {}: {}", request.getEmail(), e.getMessage());
+            throw e;
+        }
+    }
+
+    @PostMapping("/login-admin")
+    public ResponseEntity<AuthResponse> loginAdmin(@Valid @RequestBody LoginRequest request) {
+        log.info("Login admin request received for email: {}", request.getEmail());
+
+        try {
+            AuthResponse response = authService.login(request, Boolean.TRUE);
+            log.info("User admin logged in successfully: {}", request.getEmail());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Login admin failed for email {}: {}", request.getEmail(), e.getMessage());
             throw e;
         }
     }

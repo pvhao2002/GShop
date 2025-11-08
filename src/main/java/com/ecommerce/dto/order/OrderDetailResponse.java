@@ -26,6 +26,7 @@ public class OrderDetailResponse {
     private Long userId;
     private String userEmail;
     private String userName;
+    private String phone;
     private List<OrderItemResponse> items;
     private Address shippingAddress;
     private PaymentMethod paymentMethod;
@@ -34,6 +35,8 @@ public class OrderDetailResponse {
     private BigDecimal tax;
     private BigDecimal shipping;
     private BigDecimal total;
+    private LocalDateTime shippingDate;
+    private LocalDateTime deliveryDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

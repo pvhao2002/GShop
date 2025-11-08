@@ -27,25 +27,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      * Used for category creation validation.
      */
     boolean existsByNameIgnoreCase(String name);
-    
-    /**
-     * Find all root categories (categories without parent).
-     * Used for displaying main category navigation.
-     */
-    List<Category> findByParentIsNull();
-    
-    /**
-     * Find all child categories of a parent category.
-     * Used for hierarchical category display.
-     */
-    List<Category> findByParent(Category parent);
-    
-    /**
-     * Find all child categories by parent ID.
-     * Used for hierarchical category display.
-     */
-    List<Category> findByParentId(Long parentId);
-    
+
     /**
      * Find categories by name containing search term (case-insensitive).
      * Used for category search functionality.
@@ -74,21 +56,13 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      */
     @Query("SELECT c.name FROM Category c WHERE c.id = :categoryId")
     String getCategoryName(@Param("categoryId") Long categoryId);
-    
-    /**
-     * Find direct descendant categories of a parent category.
-     * Used for category filtering (simplified version of recursive query).
-     */
-    @Query("SELECT c FROM Category c WHERE c.parent.id = :parentId")
-    List<Category> findDirectDescendants(@Param("parentId") Long parentId);
-    
+
     /**
      * Get category statistics for dashboard.
      * Returns total categories, root categories, and categories with products.
      */
     @Query("SELECT " +
            "COUNT(c) as totalCategories, " +
-           "SUM(CASE WHEN c.parent IS NULL THEN 1 ELSE 0 END) as rootCategories, " +
            "COUNT(DISTINCT CASE WHEN SIZE(c.products) > 0 THEN c.id END) as categoriesWithProducts " +
            "FROM Category c")
     Object[] getCategoryStatistics();

@@ -6,6 +6,7 @@ import com.ecommerce.entity.Role;
 import com.ecommerce.entity.User;
 import com.ecommerce.exception.AccessDeniedException;
 import com.ecommerce.exception.UnauthorizedException;
+import com.ecommerce.exception.ValidationException;
 import com.ecommerce.repository.UserRepository;
 import com.ecommerce.security.JwtUtil;
 import com.ecommerce.security.UserPrincipal;
@@ -24,6 +25,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import jakarta.servlet.http.HttpServletRequest;
+
 import java.util.UUID;
 
 /**
@@ -50,7 +52,7 @@ public class AuthService {
         // Check if user already exists
         if (userRepository.existsByEmailIgnoreCase(request.getEmail())) {
             LoggingUtils.logAuthenticationFailure(request.getEmail(), clientIp, "Email already registered");
-            throw new RuntimeException("Email is already registered");
+            throw new ValidationException("Email is already registered");
         }
 
         // Create address if provided
@@ -79,7 +81,7 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
         log.info("User registered successfully with ID: {}", savedUser.getId());
-        
+
         // Log security event
         LoggingUtils.logUserRegistration(savedUser.getEmail(), clientIp);
         LoggingUtils.setUserContext(savedUser.getId().toString(), savedUser.getEmail());
@@ -104,7 +106,7 @@ public class AuthService {
     /**
      * Authenticate user and generate JWT tokens
      */
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request, Boolean loginAdmin) {
         String clientIp = getClientIpAddress();
         log.info("Attempting to authenticate user with email: {}", request.getEmail());
 
@@ -122,7 +124,12 @@ public class AuthService {
             // Check if user is active
             if (!userPrincipal.getIsActive()) {
                 LoggingUtils.logAuthenticationFailure(request.getEmail(), clientIp, "Account deactivated");
-                throw new RuntimeException("Account is deactivated");
+                throw new UnauthorizedException("Account is deactivated");
+            }
+
+
+            if (loginAdmin != null && loginAdmin && !Role.ADMIN.equals(userPrincipal.getRole())) {
+                throw new UnauthorizedException("Access denied");
             }
 
             // Generate tokens
@@ -215,10 +222,10 @@ public class AuthService {
 
         // Generate reset token (in a real implementation, this would be stored in database)
         String resetToken = UUID.randomUUID().toString();
-        
+
         // TODO: Store reset token in database with expiration
         // TODO: Send email with reset link
-        
+
         // Log security event
         LoggingUtils.logPasswordResetRequest(user.getEmail(), clientIp);
         log.info("Password reset token generated for user: {}", user.getEmail());
@@ -235,13 +242,13 @@ public class AuthService {
 
         // TODO: Validate reset token from database
         // For now, this is a placeholder implementation
-        
+
         // In a real implementation:
         // 1. Find user by reset token
         // 2. Check if token is not expired
         // 3. Update user password
         // 4. Invalidate reset token
-        
+
         log.info("Password reset functionality not fully implemented yet");
         throw new RuntimeException("Password reset functionality is not yet implemented");
     }

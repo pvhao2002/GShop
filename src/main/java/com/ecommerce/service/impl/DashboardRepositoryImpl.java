@@ -23,6 +23,7 @@ public class DashboardRepositoryImpl implements DashboardRepository {
                 (SELECT COUNT(*) FROM orders),
                 (SELECT COUNT(*) FROM orders WHERE status = 'DELIVERED'),
                 (SELECT COALESCE(SUM(total), 0) FROM orders WHERE status = 'DELIVERED'),
+                (SELECT COALESCE(AVG(total), 0) FROM orders WHERE status = 'DELIVERED'),
                 (SELECT COUNT(*) FROM categories),
                 (SELECT COUNT(*) FROM orders WHERE status = 'PENDING')
         """).getSingleResult();

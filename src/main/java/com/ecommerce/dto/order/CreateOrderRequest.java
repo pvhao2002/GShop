@@ -22,15 +22,16 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CreateOrderRequest {
-    
+    @NotEmpty(message = "Phone cannot be empty")
+    private String phone;
     @NotEmpty(message = "Order items cannot be empty")
     @Valid
     private List<CreateOrderItemRequest> items;
-    
+
     @NotNull(message = "Shipping address is required")
     @Valid
     private Address shippingAddress;
-    
+
     @NotNull(message = "Payment method is required")
     @ValidPaymentMethod
     private PaymentMethod paymentMethod;

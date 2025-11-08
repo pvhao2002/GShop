@@ -18,23 +18,24 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class PaymentResponse {
-    
     private String transactionId;
-    
     private PaymentStatus status;
-    
     private PaymentMethod paymentMethod;
-    
     private BigDecimal amount;
-    
     private String gatewayResponse;
-    
-    private String paymentUrl;
-    
     private String errorMessage;
-    
     private LocalDateTime processedAt;
-    
+    private Long id;
+    private Long orderId;
+    private String gatewayTransactionId;
+    private String failureReason;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    // Payment gateway specific fields
+    private String paymentUrl; // For MoMo and VNPay redirects
+    private String qrCode; // For QR code payments
+
     /**
      * Payment status enum.
      */

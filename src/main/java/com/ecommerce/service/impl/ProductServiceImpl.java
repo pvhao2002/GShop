@@ -22,7 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -38,21 +41,83 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final ProductVariantRepository productVariantRepository;
-    
+
+    @Override
+    public List<ProductResponse> topTrendingProducts() {
+        Pageable pageable = PageRequest.of(0, 20);
+        var productPage = productRepository.findTrendingProducts(pageable);
+
+        // Lấy danh sách ID để load toàn bộ thông tin (bao gồm variant, category...)
+        List<Long> ids = productPage
+                .stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+
+        List<Product> products = productRepository.findAllByIdIn(ids);
+
+        List<ProductResponse> productResponses = productPage
+                .stream()
+                .map(p -> convertToProductResponse(p, products))
+                .collect(Collectors.toList());
+
+        log.info("Fetched {} newest products", productResponses.size());
+        return productResponses;
+    }
+
+    @Override
+    public List<ProductResponse> getFlashSaleProducts() {
+        var productPage = productRepository.findTop20ByIsActiveTrueOrderByPrice();
+
+        // Lấy danh sách ID để load toàn bộ thông tin (bao gồm variant, category...)
+        List<Long> ids = productPage
+                .stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+
+        List<Product> products = productRepository.findAllByIdIn(ids);
+
+        List<ProductResponse> productResponses = productPage
+                .stream()
+                .map(p -> convertToProductResponse(p, products))
+                .collect(Collectors.toList());
+
+        log.info("Fetched {} newest products", productResponses.size());
+        return productResponses;
+    }
+
+    @Override
+    public List<ProductResponse> top20NewProducts() {
+        var productPage = productRepository.findTop20ByIsActiveTrueOrderByCreatedAtDesc();
+
+        // Lấy danh sách ID để load toàn bộ thông tin (bao gồm variant, category...)
+        List<Long> ids = productPage
+                .stream()
+                .map(Product::getId)
+                .collect(Collectors.toList());
+
+        List<Product> products = productRepository.findAllByIdIn(ids);
+
+        List<ProductResponse> productResponses = productPage
+                .stream()
+                .map(p -> convertToProductResponse(p, products))
+                .collect(Collectors.toList());
+
+        log.info("Fetched {} newest products", productResponses.size());
+        return productResponses;
+    }
+
     @Override
     public PagedResponse<ProductResponse> getAllProducts(int page, int size, Long categoryId, String search,
                                                         BigDecimal minPrice, BigDecimal maxPrice) {
-        log.debug("Getting all products with filters - page: {}, size: {}, categoryId: {}, search: {}, minPrice: {}, maxPrice: {}",
-                page, size, categoryId, search, minPrice, maxPrice);
-        
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Product> productPage;
         
         // Use the advanced search method from repository
         productPage = productRepository.findWithFilters(categoryId, search, minPrice, maxPrice, pageable);
-        
+        List<Product> products = productRepository.findAllByIdIn(productPage.getContent().stream().map(Product::getId).collect(Collectors.toList()));
+
         List<ProductResponse> productResponses = productPage.getContent().stream()
-                .map(this::convertToProductResponse)
+                .map(e -> convertToProductResponse(e, products))
                 .collect(Collectors.toList());
         
         return PagedResponse.<ProductResponse>builder()
@@ -92,9 +157,9 @@ public class ProductServiceImpl implements ProductService {
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<Product> productPage = productRepository.searchByNameOrDescription(query.trim(), pageable);
-        
+        var products = productRepository.findAllByIdIn(productPage.getContent().stream().map(Product::getId).collect(Collectors.toList()));
         List<ProductResponse> productResponses = productPage.getContent().stream()
-                .map(this::convertToProductResponse)
+                .map(e -> convertToProductResponse(e, products))
                 .collect(Collectors.toList());
         
         return PagedResponse.<ProductResponse>builder()
@@ -119,21 +184,10 @@ public class ProductServiceImpl implements ProductService {
                 .map(this::convertToCategoryResponse)
                 .collect(Collectors.toList());
     }
-    
-    @Override
-    public List<CategoryResponse> getRootCategories() {
-        log.debug("Getting root categories");
-        
-        List<Category> rootCategories = categoryRepository.findByParentIsNull();
-        return rootCategories.stream()
-                .map(this::convertToCategoryResponse)
-                .collect(Collectors.toList());
-    }
+
     
     @Override
     public List<CategoryResponse> getCategoriesWithProducts() {
-        log.debug("Getting categories with active products");
-        
         List<Category> categories = categoryRepository.findCategoriesWithActiveProducts();
         return categories.stream()
                 .map(this::convertToCategoryResponse)
@@ -143,37 +197,28 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
-        log.debug("Creating new product: {}", request.getName());
-        
-        // Validate category exists
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getCategoryId()));
-        
-        // Create product
         Product product = Product.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .price(request.getPrice())
                 .category(category)
-                .images(request.getImages() != null ? new ArrayList<>(request.getImages()) : new ArrayList<>())
+                .images(new HashSet<>(request.getImages()))
                 .isActive(true)
-                .variants(new ArrayList<>())
+                .variants(new HashSet<>())
                 .build();
         
         Product savedProduct = productRepository.save(product);
-        
-        // Create variants if provided
         if (request.getVariants() != null && !request.getVariants().isEmpty()) {
-            List<ProductVariant> variants = request.getVariants().stream()
+            var variants = request.getVariants().stream()
                     .map(variantRequest -> createProductVariant(savedProduct, variantRequest))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
             
             productVariantRepository.saveAll(variants);
             savedProduct.setVariants(variants);
         }
-        
-        log.info("Created product with id: {}", savedProduct.getId());
-        return convertToProductResponse(savedProduct);
+        return convertToProductResponse(savedProduct, List.of());
     }
     
     @Override
@@ -193,7 +238,7 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setCategory(category);
-        product.setImages(request.getImages() != null ? new ArrayList<>(request.getImages()) : new ArrayList<>());
+        product.setImages(request.getImages() != null ? new HashSet<>(request.getImages()) : new HashSet<>());
         
         if (request.getIsActive() != null) {
             product.setIsActive(request.getIsActive());
@@ -207,7 +252,7 @@ public class ProductServiceImpl implements ProductService {
         }
         
         log.info("Updated product with id: {}", savedProduct.getId());
-        return convertToProductResponse(savedProduct);
+        return convertToProductResponse(savedProduct, List.of());
     }
     
     @Override
@@ -237,31 +282,20 @@ public class ProductServiceImpl implements ProductService {
         Product savedProduct = productRepository.save(product);
         
         log.info("Updated product status - id: {}, isActive: {}", id, request.getIsActive());
-        return convertToProductResponse(savedProduct);
+        return convertToProductResponse(savedProduct, List.of());
     }
     
     @Override
     @Transactional
     public CategoryResponse createCategory(CreateCategoryRequest request) {
-        log.debug("Creating new category: {}", request.getName());
-        
         // Check if category name already exists
         if (categoryRepository.existsByNameIgnoreCase(request.getName())) {
             throw new ValidationException("Category with name '" + request.getName() + "' already exists");
         }
-        
-        Category parent = null;
-        if (request.getParentId() != null) {
-            parent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getParentId()));
-        }
-        
+
         Category category = Category.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .parent(parent)
-                .children(new ArrayList<>())
-                .products(new ArrayList<>())
                 .build();
         
         Category savedCategory = categoryRepository.save(category);
@@ -273,32 +307,19 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request) {
-        log.debug("Updating category with id: {}", id);
-        
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "id", id));
         
-        // Check if new name conflicts with existing categories (excluding current category)
         categoryRepository.findByNameIgnoreCase(request.getName())
                 .ifPresent(existingCategory -> {
                     if (!existingCategory.getId().equals(id)) {
                         throw new ValidationException("Category with name '" + request.getName() + "' already exists");
                     }
                 });
-        
-        Category parent = null;
-        if (request.getParentId() != null) {
-            if (request.getParentId().equals(id)) {
-                throw new ValidationException("Category cannot be its own parent");
-            }
-            parent = categoryRepository.findById(request.getParentId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Category", "id", request.getParentId()));
-        }
-        
+
         category.setName(request.getName());
         category.setDescription(request.getDescription());
-        category.setParent(parent);
-        
+
         Category savedCategory = categoryRepository.save(category);
         
         log.info("Updated category with id: {}", savedCategory.getId());
@@ -317,12 +338,7 @@ public class ProductServiceImpl implements ProductService {
         if (!category.getProducts().isEmpty()) {
             throw new ValidationException("Cannot delete category that contains products");
         }
-        
-        // Check if category has child categories
-        if (!category.getChildren().isEmpty()) {
-            throw new ValidationException("Cannot delete category that has child categories");
-        }
-        
+
         categoryRepository.delete(category);
         
         log.info("Deleted category with id: {}", id);
@@ -330,20 +346,26 @@ public class ProductServiceImpl implements ProductService {
     
     // Helper methods for entity to DTO conversion
     
-    private ProductResponse convertToProductResponse(Product product) {
+    private ProductResponse convertToProductResponse(Product product, List<Product> products) {
         Integer totalInventory = productVariantRepository.calculateTotalInventoryByProductId(product.getId());
-        
+        var p = products.stream().filter(f -> f.getId().equals(product.getId())).findFirst();
+        AtomicReference<List<String>> images = new AtomicReference<>();
+        p.ifPresent(item -> {
+            images.set(List.copyOf(item.getImages()));
+        });
+        var hasVariants = productVariantRepository.existsByProduct(product);
+
         return ProductResponse.builder()
                 .id(product.getId())
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())
-                .images(product.getImages())
+                .images(images.get())
                 .category(convertToCategoryResponse(product.getCategory()))
                 .isActive(product.getIsActive())
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt())
-                .hasVariants(!product.getVariants().isEmpty())
+                .hasVariants(hasVariants)
                 .totalInventory(totalInventory != null ? totalInventory : 0)
                 .build();
     }
@@ -359,7 +381,7 @@ public class ProductServiceImpl implements ProductService {
                 .name(product.getName())
                 .description(product.getDescription())
                 .price(product.getPrice())
-                .images(product.getImages())
+                .images(product.getImages().stream().toList())
                 .category(convertToCategoryResponse(product.getCategory()))
                 .variants(variants.stream().map(this::convertToProductVariantResponse).collect(Collectors.toList()))
                 .isActive(product.getIsActive())
@@ -392,10 +414,6 @@ public class ProductServiceImpl implements ProductService {
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
-                .parent(category.getParent() != null ? convertToCategoryResponse(category.getParent()) : null)
-                .children(category.getChildren().stream()
-                        .map(this::convertToCategoryResponse)
-                        .collect(Collectors.toList()))
                 .productCount(category.getProducts().size())
                 .build();
     }
@@ -451,8 +469,8 @@ public class ProductServiceImpl implements ProductService {
         // Remove variants that are not in the update request
         List<Long> updatedVariantIds = variantRequests.stream()
                 .map(UpdateProductVariantRequest::getId)
-                .filter(id -> id != null)
-                .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .toList();
         
         List<ProductVariant> variantsToDelete = existingVariants.stream()
                 .filter(v -> !updatedVariantIds.contains(v.getId()))

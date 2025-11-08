@@ -16,6 +16,8 @@ import java.util.Optional;
  */
 @Repository
 public interface ProductVariantRepository extends JpaRepository<ProductVariant, Long> {
+
+    boolean existsByProduct(Product product);
     
     /**
      * Find variants by product.

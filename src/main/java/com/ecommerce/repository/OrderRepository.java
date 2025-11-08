@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository interface for Order entity operations.
@@ -21,6 +22,9 @@ import java.util.List;
  */
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long>, JpaSpecificationExecutor<Order> {
+    Optional<Order> findByTrackingNumber(String txn);
+
+    Optional<Order> findOrderByIdAndStatus(Long id, OrderStatus status);
 
     /**
      * Find orders by user.

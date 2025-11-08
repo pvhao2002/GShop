@@ -21,11 +21,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class OrderResponse {
-    
     private Long id;
     private Long userId;
     private String userEmail;
     private String userName;
+    private String phone;
     private Address shippingAddress;
     private PaymentMethod paymentMethod;
     private OrderStatus status;

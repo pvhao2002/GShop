@@ -2,6 +2,8 @@ package com.ecommerce.service;
 
 import com.ecommerce.dto.payment.PaymentRequest;
 import com.ecommerce.dto.payment.PaymentResponse;
+import com.ecommerce.entity.Order;
+import com.ecommerce.entity.OrderStatus;
 import com.ecommerce.entity.PaymentMethod;
 
 /**
@@ -9,37 +11,41 @@ import com.ecommerce.entity.PaymentMethod;
  * Provides abstraction for different payment gateway integrations.
  */
 public interface PaymentService {
-    
+    String getSerectKey();
+
     /**
      * Process payment for an order.
-     * 
+     *
      * @param request Payment request with order and payment details
      * @return Payment response with transaction information
      */
     PaymentResponse processPayment(PaymentRequest request);
-    
+
+    Order updatePayment(String txnRef, OrderStatus status);
+    Order updatePayment(Long id, OrderStatus status);
+
     /**
      * Verify payment status from payment gateway.
-     * 
+     *
      * @param transactionId Transaction ID from payment gateway
      * @param paymentMethod Payment method used
      * @return Payment verification response
      */
     PaymentResponse verifyPayment(String transactionId, PaymentMethod paymentMethod);
-    
+
     /**
      * Refund a payment.
-     * 
+     *
      * @param transactionId Original transaction ID
-     * @param amount Amount to refund
+     * @param amount        Amount to refund
      * @param paymentMethod Payment method used
      * @return Refund response
      */
     PaymentResponse refundPayment(String transactionId, java.math.BigDecimal amount, PaymentMethod paymentMethod);
-    
+
     /**
      * Check if payment method is supported.
-     * 
+     *
      * @param paymentMethod Payment method to check
      * @return true if supported, false otherwise
      */
